@@ -1,0 +1,699 @@
+{
+  "summaries": [
+    {
+      "category": "short_factual",
+      "text": "The Python programming language was created by Guido van Rossum and first released in 1991.\n        It is known for its simple syntax and readability. Python is widely used in data science,\n        web development, automation, and artificial intelligence.",
+      "params_results": [
+        {
+          "params_name": "default",
+          "summary": "Python is a language that can be used to develop data from data sources and data. Python has been developed by Guido van Rossum, a software engineer, and has been working on the software since 1990.",
+          "metrics": {
+            "rouge1_f1": 0.3835616438356164,
+            "rouge2_f1": 0.11267605633802817,
+            "rougeL_f1": 0.1917808219178082,
+            "bleu1": 0.3448275862068966,
+            "bleu2": 0.08823529411764706,
+            "bleu4": 0.0,
+            "stats": {
+              "length": 198,
+              "num_sentences": 2,
+              "lexical_diversity": 0.8055555555555556
+            }
+          }
+        },
+        {
+          "params_name": "more_diverse",
+          "summary": "Python is widely used in data science, web development, automation, and artificial intelligence.  2017  - Python programming language . Python",
+          "metrics": {
+            "rouge1_f1": 0.5818181818181818,
+            "rouge2_f1": 0.5283018867924528,
+            "rougeL_f1": 0.4727272727272727,
+            "bleu1": 0.8333333333333334,
+            "bleu2": 0.7368421052631579,
+            "bleu4": 0.5882352941176471,
+            "stats": {
+              "length": 142,
+              "num_sentences": 3,
+              "lexical_diversity": 0.9
+            }
+          }
+        },
+        {
+          "params_name": "more_focused",
+          "summary": "Python is a programming language that uses standardized syntax and readability. It is also used in data science, web development, automation, and artificial intelligence.",
+          "metrics": {
+            "rouge1_f1": 0.6229508196721311,
+            "rouge2_f1": 0.47457627118644075,
+            "rougeL_f1": 0.5573770491803279,
+            "bleu1": 0.7727272727272727,
+            "bleu2": 0.6086956521739131,
+            "bleu4": 0.3333333333333333,
+            "stats": {
+              "length": 170,
+              "num_sentences": 2,
+              "lexical_diversity": 0.9166666666666666
+            }
+          }
+        }
+      ]
+    },
+    {
+      "category": "medium_news",
+      "text": "The Inflation Reduction Act represents the single biggest climate investment in U.S. history \n        and is the first major climate law passed in the United States. It will reduce greenhouse gas \n        emissions and invest in clean energy, primarily through clean energy tax credits. It also includes \n        provisions on healthcare and tax policy. The bill passed in the U.S. Senate on August 7, 2022, \n        along party lines with Vice President Kamala Harris casting the tie-breaking vote, and it passed \n        in the U.S. House of Representatives on August 12, 2022. The bill was signed into law by President \n        Joe Biden on August 16, 2022. The bill was a slimmed down version of the Build Back Better Act, \n        which was blocked by Senators Joe Manchin and Kyrsten Sinema. After Manchin and Senate Majority \n        Leader Chuck Schumer reached a compromise, the bill was renamed and passed through the reconciliation process.",
+      "params_results": [
+        {
+          "params_name": "default",
+          "summary": "Inflation Reduction Act represents the single biggest climate investment in U.S. history and is the first major climate law passed in the United States. It will reduce greenhouse gas emissions and invest in clean energy, primarily through clean energy tax credits.",
+          "metrics": {
+            "rouge1_f1": 0.8936170212765957,
+            "rouge2_f1": 0.891304347826087,
+            "rougeL_f1": 0.8936170212765957,
+            "bleu1": 1.0,
+            "bleu2": 1.0,
+            "bleu4": 1.0,
+            "stats": {
+              "length": 264,
+              "num_sentences": 2,
+              "lexical_diversity": 0.8292682926829268
+            }
+          }
+        },
+        {
+          "params_name": "more_diverse",
+          "summary": "The inflation reduction bill passed in the U.S. Senate on August 7, 2022, along party lines with Vice President Kamala Harris casting the tie-breaking vote, and it passed in the United States House of Representatives on August 12, 2022",
+          "metrics": {
+            "rouge1_f1": 0.3655913978494624,
+            "rouge2_f1": 0.15384615384615385,
+            "rougeL_f1": 0.27956989247311825,
+            "bleu1": 0.3125,
+            "bleu2": 0.14285714285714285,
+            "bleu4": 0.027777777777777776,
+            "stats": {
+              "length": 235,
+              "num_sentences": 1,
+              "lexical_diversity": 0.8205128205128205
+            }
+          }
+        },
+        {
+          "params_name": "more_focused",
+          "summary": "The Inflation Reduction Act represents the single biggest climate investment in U.S. history and is the first major climate law passed in the United States.",
+          "metrics": {
+            "rouge1_f1": 0.6666666666666666,
+            "rouge2_f1": 0.6578947368421052,
+            "rougeL_f1": 0.6666666666666666,
+            "bleu1": 1.0,
+            "bleu2": 1.0,
+            "bleu4": 1.0,
+            "stats": {
+              "length": 156,
+              "num_sentences": 1,
+              "lexical_diversity": 0.8
+            }
+          }
+        }
+      ]
+    },
+    {
+      "category": "technical",
+      "text": "Transformers are deep learning models that have revolutionized natural language processing. The \n        architecture consists of an encoder and decoder, both containing stacks of self-attention layers \n        and feed-forward neural networks. The key innovation in transformers is the self-attention mechanism, \n        which allows the model to weigh the importance of different words in a sequence when processing a \n        specific word, regardless of their positions. This overcomes limitations of RNNs and LSTMs, which \n        process sequences sequentially. Transformers can process all words in parallel, making them more \n        efficient to train. They also capture long-range dependencies better than previous architectures. \n        Since their introduction in the \"Attention is All You Need\" paper by Vaswani et al. in 2017, \n        transformers have been the foundation for models like BERT, GPT, and T5.",
+      "params_results": [
+        {
+          "params_name": "default",
+          "summary": "Transformers are deep learning models that have revolutionized natural language processing. The architecture consists of an encoder and decoder, both containing stacks of self-attention layers and feed-forward neural networks.",
+          "metrics": {
+            "rouge1_f1": 0.6526315789473685,
+            "rouge2_f1": 0.6451612903225806,
+            "rougeL_f1": 0.6526315789473685,
+            "bleu1": 1.0,
+            "bleu2": 1.0,
+            "bleu4": 1.0,
+            "stats": {
+              "length": 226,
+              "num_sentences": 2,
+              "lexical_diversity": 0.9310344827586207
+            }
+          }
+        },
+        {
+          "params_name": "more_diverse",
+          "summary": "transformers utilize adaptive architectures and enable them to train. They also capture long-range dependencies better than previous architectures. transformers are deep learning models that have revolutionized natural language processing.",
+          "metrics": {
+            "rouge1_f1": 0.3191489361702128,
+            "rouge2_f1": 0.21739130434782608,
+            "rougeL_f1": 0.23404255319148934,
+            "bleu1": 0.4642857142857143,
+            "bleu2": 0.35714285714285715,
+            "bleu4": 0.3076923076923077,
+            "stats": {
+              "length": 239,
+              "num_sentences": 3,
+              "lexical_diversity": 0.9655172413793104
+            }
+          }
+        },
+        {
+          "params_name": "more_focused",
+          "summary": "Transformers are deep learning models that have revolutionized natural language processing. The architecture consists of an encoder and decoder, both containing stacks of self-attention layers and feed-forward neural networks.",
+          "metrics": {
+            "rouge1_f1": 0.6526315789473685,
+            "rouge2_f1": 0.6451612903225806,
+            "rougeL_f1": 0.6526315789473685,
+            "bleu1": 1.0,
+            "bleu2": 1.0,
+            "bleu4": 1.0,
+            "stats": {
+              "length": 226,
+              "num_sentences": 2,
+              "lexical_diversity": 0.9310344827586207
+            }
+          }
+        }
+      ]
+    },
+    {
+      "category": "abstract",
+      "text": "Consciousness remains one of the most profound mysteries in science. It refers to our subjective \n        awareness of the world and our own mental states. Despite significant advances in neuroscience, \n        explaining how physical processes in the brain give rise to subjective experiences\u2014the \"hard problem \n        of consciousness\"\u2014continues to challenge researchers. Theories range from emergent properties of \n        neural complexity to quantum effects in microtubules. Some philosophers argue that consciousness \n        is fundamental and cannot be reduced to physical processes, while others maintain that it will \n        eventually be explained through conventional science. The study of consciousness intersects \n        neuroscience, philosophy, psychology, and even physics, making it a truly interdisciplinary endeavor.",
+      "params_results": [
+        {
+          "params_name": "default",
+          "summary": "Despite significant advances in neuroscience, explaining how physical processes in the brain give rise to subjective experiences\u2014the \"hard problem of consciousness\"\u2014continues to challenge researchers.",
+          "metrics": {
+            "rouge1_f1": 0.6842105263157895,
+            "rouge2_f1": 0.6756756756756758,
+            "rougeL_f1": 0.6842105263157895,
+            "bleu1": 1.0,
+            "bleu2": 1.0,
+            "bleu4": 1.0,
+            "stats": {
+              "length": 200,
+              "num_sentences": 1,
+              "lexical_diversity": 0.9166666666666666
+            }
+          }
+        },
+        {
+          "params_name": "more_diverse",
+          "summary": "Consciousness remains one of the most profound mysteries in science. It refers to our subjective awareness of the world and our own mental states. Despite significant advances in neuroscience, explaining how physical processes in the brain give rise to subjective experiences\u2014the \"hard problem of consciousness\"\u2014continues to challenge researchers. Theories range from emergent properties of neural complexity to quantum effects in microtubules. Some philosophers argue that consciousness is fundamental and cannot be reduced to physical processes, while others maintain that it will eventually be explained through conventional science.",
+          "metrics": {
+            "rouge1_f1": 0.7194244604316548,
+            "rouge2_f1": 0.7153284671532847,
+            "rougeL_f1": 0.7194244604316548,
+            "bleu1": 0.5757575757575758,
+            "bleu2": 0.5411764705882353,
+            "bleu4": 0.5357142857142857,
+            "stats": {
+              "length": 636,
+              "num_sentences": 5,
+              "lexical_diversity": 0.7586206896551724
+            }
+          }
+        },
+        {
+          "params_name": "more_focused",
+          "summary": "The study of consciousness intersects neuroscience, philosophy, psychology, and even physics, making it a truly interdisciplinary endeavor. It is one of the most profound mysteries in science.",
+          "metrics": {
+            "rouge1_f1": 0.3896103896103896,
+            "rouge2_f1": 0.21333333333333332,
+            "rougeL_f1": 0.23376623376623376,
+            "bleu1": 0.5,
+            "bleu2": 0.2692307692307692,
+            "bleu4": 0.20833333333333334,
+            "stats": {
+              "length": 192,
+              "num_sentences": 2,
+              "lexical_diversity": 0.8888888888888888
+            }
+          }
+        }
+      ]
+    },
+    {
+      "category": "narrative",
+      "text": "The old bookstore on the corner had been there for generations. Its weathered sign swung gently \n        in the breeze, the gold lettering faded but still readable: \"Pembroke's Books & Curiosities.\" \n        Inside, the scent of aged paper and leather bindings created an atmosphere that seemed to exist \n        outside of time. Narrow aisles wound between towering shelves, and ladders on brass rails offered \n        access to the highest volumes. Mr. Pembroke himself, now in his eighties, still worked the counter \n        every day, his knowledge of literature as vast as the collection he'd curated over the decades. \n        Local legend held that the store contained every book ever written, if only one knew where to look. \n        And some customers swore that occasionally, they'd found books on the shelves that hadn't yet been written.",
+      "params_results": [
+        {
+          "params_name": "default",
+          "summary": "Mr. Pembroke's Books & Curiosities was a shop that used to be home to the writers and patrons of the Old Town and New York City.",
+          "metrics": {
+            "rouge1_f1": 0.29333333333333333,
+            "rouge2_f1": 0.1095890410958904,
+            "rougeL_f1": 0.18666666666666665,
+            "bleu1": 0.34782608695652173,
+            "bleu2": 0.08,
+            "bleu4": 0.0,
+            "stats": {
+              "length": 128,
+              "num_sentences": 1,
+              "lexical_diversity": 0.8846153846153846
+            }
+          }
+        },
+        {
+          "params_name": "more_diverse",
+          "summary": "Mr. Pembroke's Books & Curiosities was an original story that he explored in its first day. Some customers scowered up shelves for more than forty years, and found some books on the shelves that were still stocked.",
+          "metrics": {
+            "rouge1_f1": 0.3023255813953489,
+            "rouge2_f1": 0.09523809523809525,
+            "rougeL_f1": 0.1395348837209302,
+            "bleu1": 0.3333333333333333,
+            "bleu2": 0.05555555555555555,
+            "bleu4": 0.0,
+            "stats": {
+              "length": 214,
+              "num_sentences": 2,
+              "lexical_diversity": 0.8918918918918919
+            }
+          }
+        },
+        {
+          "params_name": "more_focused",
+          "summary": "Mr. Pembroke's Books & Curiosities. The old bookstore on the corner had been there for generations. Its weathered sign swung gently in the breeze, the gold lettering faded but still readable: \"Pembro''S Books and Curies.\" Inside,the scent of aged paper and leather bindings created an atmosphere that seemed to exist outside of time. Narrow aisles wound between towering shelves, and ladders on brass rails offered access to the highest volumes. Mr....",
+          "metrics": {
+            "rouge1_f1": 0.8032786885245902,
+            "rouge2_f1": 0.7666666666666666,
+            "rougeL_f1": 0.7704918032786885,
+            "bleu1": 0.6721311475409836,
+            "bleu2": 0.6,
+            "bleu4": 0.5441176470588235,
+            "stats": {
+              "length": 452,
+              "num_sentences": 6,
+              "lexical_diversity": 0.8591549295774648
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "metrics_by_category": {
+    "short_factual": [
+      {
+        "params": "default",
+        "metrics": {
+          "rouge1_f1": 0.3835616438356164,
+          "rouge2_f1": 0.11267605633802817,
+          "rougeL_f1": 0.1917808219178082,
+          "bleu1": 0.3448275862068966,
+          "bleu2": 0.08823529411764706,
+          "bleu4": 0.0,
+          "stats": {
+            "length": 198,
+            "num_sentences": 2,
+            "lexical_diversity": 0.8055555555555556
+          }
+        }
+      },
+      {
+        "params": "more_diverse",
+        "metrics": {
+          "rouge1_f1": 0.5818181818181818,
+          "rouge2_f1": 0.5283018867924528,
+          "rougeL_f1": 0.4727272727272727,
+          "bleu1": 0.8333333333333334,
+          "bleu2": 0.7368421052631579,
+          "bleu4": 0.5882352941176471,
+          "stats": {
+            "length": 142,
+            "num_sentences": 3,
+            "lexical_diversity": 0.9
+          }
+        }
+      },
+      {
+        "params": "more_focused",
+        "metrics": {
+          "rouge1_f1": 0.6229508196721311,
+          "rouge2_f1": 0.47457627118644075,
+          "rougeL_f1": 0.5573770491803279,
+          "bleu1": 0.7727272727272727,
+          "bleu2": 0.6086956521739131,
+          "bleu4": 0.3333333333333333,
+          "stats": {
+            "length": 170,
+            "num_sentences": 2,
+            "lexical_diversity": 0.9166666666666666
+          }
+        }
+      }
+    ],
+    "medium_news": [
+      {
+        "params": "default",
+        "metrics": {
+          "rouge1_f1": 0.8936170212765957,
+          "rouge2_f1": 0.891304347826087,
+          "rougeL_f1": 0.8936170212765957,
+          "bleu1": 1.0,
+          "bleu2": 1.0,
+          "bleu4": 1.0,
+          "stats": {
+            "length": 264,
+            "num_sentences": 2,
+            "lexical_diversity": 0.8292682926829268
+          }
+        }
+      },
+      {
+        "params": "more_diverse",
+        "metrics": {
+          "rouge1_f1": 0.3655913978494624,
+          "rouge2_f1": 0.15384615384615385,
+          "rougeL_f1": 0.27956989247311825,
+          "bleu1": 0.3125,
+          "bleu2": 0.14285714285714285,
+          "bleu4": 0.027777777777777776,
+          "stats": {
+            "length": 235,
+            "num_sentences": 1,
+            "lexical_diversity": 0.8205128205128205
+          }
+        }
+      },
+      {
+        "params": "more_focused",
+        "metrics": {
+          "rouge1_f1": 0.6666666666666666,
+          "rouge2_f1": 0.6578947368421052,
+          "rougeL_f1": 0.6666666666666666,
+          "bleu1": 1.0,
+          "bleu2": 1.0,
+          "bleu4": 1.0,
+          "stats": {
+            "length": 156,
+            "num_sentences": 1,
+            "lexical_diversity": 0.8
+          }
+        }
+      }
+    ],
+    "technical": [
+      {
+        "params": "default",
+        "metrics": {
+          "rouge1_f1": 0.6526315789473685,
+          "rouge2_f1": 0.6451612903225806,
+          "rougeL_f1": 0.6526315789473685,
+          "bleu1": 1.0,
+          "bleu2": 1.0,
+          "bleu4": 1.0,
+          "stats": {
+            "length": 226,
+            "num_sentences": 2,
+            "lexical_diversity": 0.9310344827586207
+          }
+        }
+      },
+      {
+        "params": "more_diverse",
+        "metrics": {
+          "rouge1_f1": 0.3191489361702128,
+          "rouge2_f1": 0.21739130434782608,
+          "rougeL_f1": 0.23404255319148934,
+          "bleu1": 0.4642857142857143,
+          "bleu2": 0.35714285714285715,
+          "bleu4": 0.3076923076923077,
+          "stats": {
+            "length": 239,
+            "num_sentences": 3,
+            "lexical_diversity": 0.9655172413793104
+          }
+        }
+      },
+      {
+        "params": "more_focused",
+        "metrics": {
+          "rouge1_f1": 0.6526315789473685,
+          "rouge2_f1": 0.6451612903225806,
+          "rougeL_f1": 0.6526315789473685,
+          "bleu1": 1.0,
+          "bleu2": 1.0,
+          "bleu4": 1.0,
+          "stats": {
+            "length": 226,
+            "num_sentences": 2,
+            "lexical_diversity": 0.9310344827586207
+          }
+        }
+      }
+    ],
+    "abstract": [
+      {
+        "params": "default",
+        "metrics": {
+          "rouge1_f1": 0.6842105263157895,
+          "rouge2_f1": 0.6756756756756758,
+          "rougeL_f1": 0.6842105263157895,
+          "bleu1": 1.0,
+          "bleu2": 1.0,
+          "bleu4": 1.0,
+          "stats": {
+            "length": 200,
+            "num_sentences": 1,
+            "lexical_diversity": 0.9166666666666666
+          }
+        }
+      },
+      {
+        "params": "more_diverse",
+        "metrics": {
+          "rouge1_f1": 0.7194244604316548,
+          "rouge2_f1": 0.7153284671532847,
+          "rougeL_f1": 0.7194244604316548,
+          "bleu1": 0.5757575757575758,
+          "bleu2": 0.5411764705882353,
+          "bleu4": 0.5357142857142857,
+          "stats": {
+            "length": 636,
+            "num_sentences": 5,
+            "lexical_diversity": 0.7586206896551724
+          }
+        }
+      },
+      {
+        "params": "more_focused",
+        "metrics": {
+          "rouge1_f1": 0.3896103896103896,
+          "rouge2_f1": 0.21333333333333332,
+          "rougeL_f1": 0.23376623376623376,
+          "bleu1": 0.5,
+          "bleu2": 0.2692307692307692,
+          "bleu4": 0.20833333333333334,
+          "stats": {
+            "length": 192,
+            "num_sentences": 2,
+            "lexical_diversity": 0.8888888888888888
+          }
+        }
+      }
+    ],
+    "narrative": [
+      {
+        "params": "default",
+        "metrics": {
+          "rouge1_f1": 0.29333333333333333,
+          "rouge2_f1": 0.1095890410958904,
+          "rougeL_f1": 0.18666666666666665,
+          "bleu1": 0.34782608695652173,
+          "bleu2": 0.08,
+          "bleu4": 0.0,
+          "stats": {
+            "length": 128,
+            "num_sentences": 1,
+            "lexical_diversity": 0.8846153846153846
+          }
+        }
+      },
+      {
+        "params": "more_diverse",
+        "metrics": {
+          "rouge1_f1": 0.3023255813953489,
+          "rouge2_f1": 0.09523809523809525,
+          "rougeL_f1": 0.1395348837209302,
+          "bleu1": 0.3333333333333333,
+          "bleu2": 0.05555555555555555,
+          "bleu4": 0.0,
+          "stats": {
+            "length": 214,
+            "num_sentences": 2,
+            "lexical_diversity": 0.8918918918918919
+          }
+        }
+      },
+      {
+        "params": "more_focused",
+        "metrics": {
+          "rouge1_f1": 0.8032786885245902,
+          "rouge2_f1": 0.7666666666666666,
+          "rougeL_f1": 0.7704918032786885,
+          "bleu1": 0.6721311475409836,
+          "bleu2": 0.6,
+          "bleu4": 0.5441176470588235,
+          "stats": {
+            "length": 452,
+            "num_sentences": 6,
+            "lexical_diversity": 0.8591549295774648
+          }
+        }
+      }
+    ]
+  },
+  "aggregate_metrics": {
+    "short_factual": {
+      "default": {
+        "rouge1_f1": 0.3835616438356164,
+        "rouge2_f1": 0.11267605633802817,
+        "rougeL_f1": 0.1917808219178082,
+        "bleu1": 0.3448275862068966,
+        "bleu2": 0.08823529411764706,
+        "bleu4": 0.0
+      },
+      "more_diverse": {
+        "rouge1_f1": 0.5818181818181818,
+        "rouge2_f1": 0.5283018867924528,
+        "rougeL_f1": 0.4727272727272727,
+        "bleu1": 0.8333333333333334,
+        "bleu2": 0.7368421052631579,
+        "bleu4": 0.5882352941176471
+      },
+      "more_focused": {
+        "rouge1_f1": 0.6229508196721311,
+        "rouge2_f1": 0.47457627118644075,
+        "rougeL_f1": 0.5573770491803279,
+        "bleu1": 0.7727272727272727,
+        "bleu2": 0.6086956521739131,
+        "bleu4": 0.3333333333333333
+      }
+    },
+    "medium_news": {
+      "default": {
+        "rouge1_f1": 0.8936170212765957,
+        "rouge2_f1": 0.891304347826087,
+        "rougeL_f1": 0.8936170212765957,
+        "bleu1": 1.0,
+        "bleu2": 1.0,
+        "bleu4": 1.0
+      },
+      "more_diverse": {
+        "rouge1_f1": 0.3655913978494624,
+        "rouge2_f1": 0.15384615384615385,
+        "rougeL_f1": 0.27956989247311825,
+        "bleu1": 0.3125,
+        "bleu2": 0.14285714285714285,
+        "bleu4": 0.027777777777777776
+      },
+      "more_focused": {
+        "rouge1_f1": 0.6666666666666666,
+        "rouge2_f1": 0.6578947368421052,
+        "rougeL_f1": 0.6666666666666666,
+        "bleu1": 1.0,
+        "bleu2": 1.0,
+        "bleu4": 1.0
+      }
+    },
+    "technical": {
+      "default": {
+        "rouge1_f1": 0.6526315789473685,
+        "rouge2_f1": 0.6451612903225806,
+        "rougeL_f1": 0.6526315789473685,
+        "bleu1": 1.0,
+        "bleu2": 1.0,
+        "bleu4": 1.0
+      },
+      "more_diverse": {
+        "rouge1_f1": 0.3191489361702128,
+        "rouge2_f1": 0.21739130434782608,
+        "rougeL_f1": 0.23404255319148934,
+        "bleu1": 0.4642857142857143,
+        "bleu2": 0.35714285714285715,
+        "bleu4": 0.3076923076923077
+      },
+      "more_focused": {
+        "rouge1_f1": 0.6526315789473685,
+        "rouge2_f1": 0.6451612903225806,
+        "rougeL_f1": 0.6526315789473685,
+        "bleu1": 1.0,
+        "bleu2": 1.0,
+        "bleu4": 1.0
+      }
+    },
+    "abstract": {
+      "default": {
+        "rouge1_f1": 0.6842105263157895,
+        "rouge2_f1": 0.6756756756756758,
+        "rougeL_f1": 0.6842105263157895,
+        "bleu1": 1.0,
+        "bleu2": 1.0,
+        "bleu4": 1.0
+      },
+      "more_diverse": {
+        "rouge1_f1": 0.7194244604316548,
+        "rouge2_f1": 0.7153284671532847,
+        "rougeL_f1": 0.7194244604316548,
+        "bleu1": 0.5757575757575758,
+        "bleu2": 0.5411764705882353,
+        "bleu4": 0.5357142857142857
+      },
+      "more_focused": {
+        "rouge1_f1": 0.3896103896103896,
+        "rouge2_f1": 0.21333333333333332,
+        "rougeL_f1": 0.23376623376623376,
+        "bleu1": 0.5,
+        "bleu2": 0.2692307692307692,
+        "bleu4": 0.20833333333333334
+      }
+    },
+    "narrative": {
+      "default": {
+        "rouge1_f1": 0.29333333333333333,
+        "rouge2_f1": 0.1095890410958904,
+        "rougeL_f1": 0.18666666666666665,
+        "bleu1": 0.34782608695652173,
+        "bleu2": 0.08,
+        "bleu4": 0.0
+      },
+      "more_diverse": {
+        "rouge1_f1": 0.3023255813953489,
+        "rouge2_f1": 0.09523809523809525,
+        "rougeL_f1": 0.1395348837209302,
+        "bleu1": 0.3333333333333333,
+        "bleu2": 0.05555555555555555,
+        "bleu4": 0.0
+      },
+      "more_focused": {
+        "rouge1_f1": 0.8032786885245902,
+        "rouge2_f1": 0.7666666666666666,
+        "rougeL_f1": 0.7704918032786885,
+        "bleu1": 0.6721311475409836,
+        "bleu2": 0.6,
+        "bleu4": 0.5441176470588235
+      }
+    }
+  },
+  "overall_average": {
+    "default": {
+      "rouge1_f1": 0.5814708207417407,
+      "rouge2_f1": 0.48688128225165245,
+      "rougeL_f1": 0.5217813230248457,
+      "bleu1": 0.7385307346326837,
+      "bleu2": 0.6336470588235295,
+      "bleu4": 0.6
+    },
+    "more_diverse": {
+      "rouge1_f1": 0.45766171153297214,
+      "rouge2_f1": 0.34202118147556254,
+      "rougeL_f1": 0.369059812508893,
+      "bleu1": 0.5038419913419914,
+      "bleu2": 0.36671482628138974,
+      "bleu4": 0.2918839330604036
+    },
+    "more_focused": {
+      "rouge1_f1": 0.6270276286842292,
+      "rouge2_f1": 0.5515264596702253,
+      "rougeL_f1": 0.576186666367857,
+      "bleu1": 0.7889716840536513,
+      "bleu2": 0.6955852842809365,
+      "bleu4": 0.6171568627450981
+    }
+  }
+}

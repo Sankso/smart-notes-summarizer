@@ -1,0 +1,156 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+"""
+Executor module for Smart Notes Summarizer.
+Handles text generation tasks and model loading.
+"""
+
+import os
+import logging
+import torch
+from typing import Dict, Any, Union, Optional, Tuple, List
+
+from transformers import AutoTokenizer, AutoModelForSeq2SeqLM, pipeline
+from peft import PeftModel
+
+logger = logging.getLogger(__name__)
+
+class Executor:
+    """
+    Executor that handles text transformation tasks.
+    Uses a fine-tuned FLAN-T5 model for text summarization and keyword extraction.
+    """
+    
+    def __init__(self,
+                model_name: str = "google/flan-t5-small",
+                model_path: Optional[str] = None):
+        """
+        Initialize the executor with the specified model.
+        
+        Args:
+            model_name: Base model name
+            model_path: Path to LoRA weights directory
+        """
+        # Set device (use CUDA if available)
+        self.device = "cuda" if torch.cuda.is_available() else "cpu"
+            
+        # If model path is not specified, try to use default path
+        if not model_path:
+            parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+            default_path = os.path.join(parent_dir, "models", "lora_weights")
+            if os.path.exists(default_path):
+                model_path = default_path
+        
+        logger.info(f"Initializing Executor with base model {model_name} on {self.device}")
+        
+        # Load tokenizer and model
+        self.tokenizer = AutoTokenizer.from_pretrained(model_name)
+        self.model = AutoModelForSeq2SeqLM.from_pretrained(model_name)
+        
+        # Load LoRA weights if provided
+        if model_path and os.path.exists(model_path):
+            logger.info(f"Loading LoRA weights from {model_path}")
+            try:
+                self.model = PeftModel.from_pretrained(
+                    self.model,
+                    model_path,
+                    is_trainable=False
+                )
+                logger.info("LoRA weights loaded successfully")
+            except Exception as e:
+                logger.warning(f"Failed to load LoRA weights: {e}")
+                logger.warning("Falling back to base model")
+        
+        # Move model to device
+        self.model.to(self.device)
+        
+        # Create generation pipeline
+        self.pipe = pipeline(
+            "text2text-generation",
+            model=self.model,
+            tokenizer=self.tokenizer,
+            device=0 if self.device == "cuda" else -1
+        )
+    
+    def generate_summary(self, text: str, length: str = "normal") -> str:
+        """
+        Generate a summary for the input text with specified length.
+        
+        Args:
+            text: Text to summarize
+            length: Summary length ('short', 'normal', 'long')
+            
+        Returns:
+            Generated summary
+        """
+        # Truncate if needed
+        if len(text) > 10000:
+            logger.warning(f"Input text is very long ({len(text)} chars). Truncating to 10000 chars.")
+            text = text[:10000]
+        
+        # Create prompt with length guidance
+        if length == "short":
+            prompt = f"Generate a concise and brief summary of the following text in a few sentences (around 50 words):\n\n{text}"
+            max_new_tokens = 75
+            min_new_tokens = 30
+        elif length == "long":
+            prompt = f"Generate a comprehensive and detailed summary of the following text, covering all key points (around 250-300 words):\n\n{text}"
+            max_new_tokens = 350
+            min_new_tokens = 200
+        else:  # normal
+            prompt = f"Summarize the following text with moderate detail (around 150 words):\n\n{text}"
+            max_new_tokens = 200
+            min_new_tokens = 100
+        
+        # Generate summary
+        logger.info(f"Generating {length} summary (max_tokens={max_new_tokens})...")
+        
+        result = self.pipe(
+            prompt,
+            do_sample=True,
+            temperature=0.7,
+            top_p=0.9,
+            max_new_tokens=max_new_tokens,
+            min_length=min_new_tokens
+        )
+        
+        summary = result[0]['generated_text']
+        logger.info(f"Summary generated: {len(summary)} chars")
+        
+        return summary
+    
+    def extract_keywords(self, text: str, num_keywords: int = 10) -> List[str]:
+        """
+        Extract keywords from the input text.
+        
+        Args:
+            text: Text to extract keywords from
+            num_keywords: Maximum number of keywords to extract
+            
+        Returns:
+            List of keywords
+        """
+        # Create prompt with explicit instructions
+        prompt = f"Extract exactly {num_keywords} important and distinctive keywords or key phrases from this text. Return only the keywords as a comma-separated list with no explanation or additional text:\n\n{text}"
+        
+        # Generate keywords
+        logger.info(f"Extracting {num_keywords} keywords...")
+        
+        result = self.pipe(
+            prompt,
+            do_sample=True,
+            temperature=0.3,
+            max_new_tokens=100
+        )
+        
+        keywords_text = result[0]['generated_text']
+        
+        # Parse comma-separated list and clean up
+        keywords = [kw.strip() for kw in keywords_text.split(',')]
+        
+        # Filter out empty entries and limit to requested number
+        keywords = [kw for kw in keywords if kw and len(kw) > 1][:num_keywords]
+        
+        logger.info(f"Extracted {len(keywords)} keywords")
+        return keywords

@@ -1,0 +1,31 @@
+# Core dependencies
+torch>=2.0.0
+transformers>=4.30.0
+datasets>=2.10.0
+peft>=0.4.0
+bitsandbytes>=0.39.0
+accelerate>=0.20.0
+sentencepiece>=0.1.99
+
+# PDF processing
+PyPDF2>=3.0.0
+pdf2image>=1.16.3
+pytesseract>=0.3.10
+
+# Agent and evaluation
+langchain>=0.0.267
+rouge-score>=0.1.2
+nltk>=3.8.1
+
+# UI and visualization
+streamlit>=1.24.0
+matplotlib>=3.7.1
+seaborn>=0.12.2
+
+# Testing
+pytest>=7.3.1
+
+# Utilities
+pandas>=2.0.0
+numpy>=1.24.0
+tqdm>=4.65.0

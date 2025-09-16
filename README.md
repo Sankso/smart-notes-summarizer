@@ -4,7 +4,7 @@ A powerful AI system for summarizing lecture notes, PDFs, and text documents usi
 
 ##🎥 Demo
 
-https://github.com/Sankso/smart-notes-summarizer/issues/1#issue-3422244263
+[![Watch the demo](demo.mp4)](https://github.com/Sankso/smart-notes-summarizer/issues/1#issue-3422244263)
 
 ## 📋 Overview
 

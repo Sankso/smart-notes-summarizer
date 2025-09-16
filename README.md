@@ -1,8 +1,10 @@
 # Smart Notes Summarizer
 
 A powerful AI system for summarizing lecture notes, PDFs, and text documents using fine-tuned language models with an intelligent multi-agent architecture.
+
 ##🎥 Demo
-https://github.com/Sankso/smart-notes-summarizer/issues/1#issue-3422244263 
+https://github.com/Sankso/smart-notes-summarizer/issues/1#issue-3422244263
+
 ## 📋 Overview
 
 Smart Notes Summarizer is designed to help students and professionals quickly extract key information from lengthy documents. The system employs a sophisticated multi-agent architecture:

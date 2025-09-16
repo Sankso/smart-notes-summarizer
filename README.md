@@ -2,9 +2,9 @@
 
 A powerful AI system for summarizing lecture notes, PDFs, and text documents using fine-tuned language models with an intelligent multi-agent architecture.
 
-##🎥 Demo
+🎥 Demo
 
-[![Watch the demo](demo.mp4)](https://github.com/Sankso/smart-notes-summarizer/issues/1#issue-3422244263)
+https://github.com/user-attachments/assets/d506410e-d983-44d3-b894-c69c83df464f
 
 ## 📋 Overview
 

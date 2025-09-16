@@ -330,7 +330,7 @@ Potential enhancements for future versions:
 
 - **Name**: Sanskriti Pal
 - **University**: IIT Goa
-- **Department**: BTech
+- **Department**: BTech Mathematics And Computing 2027
 
 ## 📄 License
 

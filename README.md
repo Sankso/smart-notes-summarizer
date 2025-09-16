@@ -6,6 +6,10 @@ A powerful AI system for summarizing lecture notes, PDFs, and text documents usi
 
 Smart Notes Summarizer is designed to help students and professionals quickly extract key information from lengthy documents. The system employs a sophisticated multi-agent architecture:
 
+## 🎥 Demo
+
+https://user-images.githubusercontent.com/12345678/abcdefgh-ijklmnop.mp4  
+
 - A **Planner** agent that analyzes the input to determine the optimal processing strategy
 - An **Executor** agent that generates high-quality summaries using a fine-tuned language model
 - A **Keyword Extractor** that identifies key topics and themes from documents

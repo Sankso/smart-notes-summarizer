@@ -172,8 +172,39 @@ The UI provides a user-friendly way to interact with the system:
 
 - **Base Model**: FLAN-T5-small (google/flan-t5-small)
 - **Fine-tuning Method**: LoRA (Low-Rank Adaptation)
-- **Training Data**: Summarization datasets (processed via dataset_preparation.py)
+- **Training Data**: CNN/DailyMail dataset (train[:50000] subset)
+- **Training Parameters**: 4 epochs, batch size 2 with gradient accumulation 8, learning rate 3e-4
 - **Inference**: Efficient inference with LoRA adapters
+
+## Reasoning Behind Architecture Choices
+
+### 1. Model Selection Rationale
+
+- **Why FLAN-T5-small?**
+  - **Balance of Quality and Performance**: With 250M parameters, FLAN-T5-small offers a good balance between summarization quality and computational efficiency
+  - **Instruction Tuning**: FLAN (Fine-tuned LAnguage Net) models are already instruction-tuned, making them better suited for task-specific adaptation
+  - **Encoder-Decoder Architecture**: T5's encoder-decoder design is particularly effective for text transformation tasks like summarization
+  - **Resource Constraints**: Larger models would require significantly more computational resources while providing diminishing returns for our specific use case
+
+- **Why LoRA Fine-tuning?**
+  - **Parameter Efficiency**: By training only ~0.5% of the parameters (rank decomposition matrices), we achieve significant memory savings
+  - **Training Speed**: Reduced parameter count enables faster training iterations and experimentation
+  - **Comparable Performance**: LoRA adaptation achieves similar quality to full fine-tuning for our summarization tasks
+  - **Modularity**: Adapters can be swapped or combined without retraining the base model
+  - **Future Extensibility**: Additional task-specific adapters can be added without conflicting with summarization capabilities
+
+### 2. Multi-Agent Architecture Justification
+
+- **Why Multiple Agents?**
+  - **Separation of Concerns**: Each agent specializes in specific tasks, improving modularity and maintainability
+  - **Parallel Development**: Different components can be improved independently
+  - **Flexibility**: The system can be easily extended with new capabilities
+  - **Targeted Optimization**: Each component can be optimized for its specific task
+
+- **Planner-Executor Pattern Benefits**
+  - **Strategic Processing**: The planner can analyze document characteristics before deciding on the optimal processing approach
+  - **Resource Optimization**: Different processing strategies can be applied based on document complexity
+  - **Quality Control**: The planner can request specific processing parameters based on document analysis
 
 ## Logging and Monitoring
 
@@ -186,3 +217,24 @@ The UI provides a user-friendly way to interact with the system:
 - Unit tests for all major components
 - Test fixtures and mocks for transformer models
 - Evaluation metrics validation
+
+## Utility Components
+
+### 1. Batch Processing System (`scripts/batch_processor.py`)
+
+- Processes multiple documents in sequence
+- Maintains consistent settings across batch runs
+- Provides aggregated results and statistics
+- Supports parallel processing when resources permit
+
+### 2. Helper Utilities
+
+- **Model Management** (`utils/copy_model.py` and `utils/copy_model.ps1`)
+  - Facilitates moving model files to the correct locations
+  - Cross-platform support with both Python and PowerShell implementations
+  - Handles model verification and validation
+
+- **CLI Interface** (`scripts/cli_app.py`)
+  - Command-line interface for non-UI usage scenarios
+  - Supports automation and scripting
+  - Provides the same functionality as the UI in a scriptable form

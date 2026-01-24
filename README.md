@@ -58,7 +58,7 @@ The system uses a FLAN-T5-small model fine-tuned with Low-Rank Adaptation (LoRA)
 - **Fine-tuning Method**: LoRA (r=16, alpha=32, targeting q and v modules)
 - **Dataset**: CNN/DailyMail 3.0.0 (train[:50000] subset)
 - **Training Parameters**: 4 epochs, batch size 2 with gradient accumulation 8, learning rate 3e-4
-- **Evaluation Metrics**: ROUGE-1/2/L F1 scores and BLEU-1/2/4 scores
+- **Evaluation Metrics**: ROUGE-1/L F1 scores and BLEU-1 score
 
 To fine-tune your own model, use the provided notebook:
 

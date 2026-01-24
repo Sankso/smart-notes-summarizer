@@ -145,59 +145,6 @@ python main.py --pdf "path/to/document.pdf" --output "summary.txt"
 python main.py --ui
 ```
 
-### Python API for Developers
-
-For programmatic use in your own applications:
-
-```python
-from agent.agent import SmartSummarizerAgent
-
-# Initialize the agent
-agent = SmartSummarizerAgent()
-
-# Summarize a PDF file with all features
-result = agent.summarize_pdf(
-    "path/to/document.pdf",
-    summary_length="normal",  # Options: "short", "normal", "long"
-    extract_keywords=True,
-    detect_sections=True
-)
-
-# Access summary, keywords and sections
-summary = result["summary"]
-keywords = result["keywords"]  # List of extracted keywords with scores
-sections = result["sections"]  # Dictionary of section summaries
-
-# Process text directly
-text_result = agent.summarize_text(
-    "Your long text to summarize...",
-    summary_length="short",
-    extract_keywords=True
-)
-```
-
-### Batch Processing for Multiple Documents
-
-Process entire directories of PDFs:
-
-```python
-from scripts.batch_processor import BatchPDFProcessor
-
-# Initialize the batch processor
-processor = BatchPDFProcessor()
-
-# Process a directory of PDFs
-results = processor.process_directory(
-    "path/to/pdf_folder",
-    summary_length="normal",
-    extract_keywords=True,
-    detect_sections=True
-)
-
-# Results contain summary data for each PDF
-for pdf_path, result in results.items():
-    print(f"Summary for {pdf_path}: {result['summary']}")
-```
 
 ## 📊 Quality Evaluation
 

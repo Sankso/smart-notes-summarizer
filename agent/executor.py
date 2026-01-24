@@ -163,80 +163,52 @@ class Executor:
         
         This method is the core summarization functionality. It:
         1. Normalizes text to ensure consistent input quality
-        2. Creates an appropriate prompt based on desired summary length
-        3. Uses the model to generate a summary with carefully tuned parameters
-        4. Applies post-processing to improve readability and reduce repetition
-        5. Calculates quality metrics to track improvements
+        2. Checks text length to determine strategy (standard vs refine)
+        3. Creates an appropriate prompt based on desired summary length, using few-shot examples
+        4. Uses the model to generate a summary with carefully tuned parameters
+        5. Applies post-processing to improve readability and reduce repetition
         
         Args:
             text: The text content to summarize
-            length: Desired summary length:
-                   - 'short': Concise summary (around 50 words)
-                   - 'normal': Standard length (around 150 words)
-                   - 'long': Comprehensive summary (around 250-300 words)
+            length: Desired summary length ('short', 'normal', 'long')
             
         Returns:
             Processed and improved summary text
         """
-        # Normalize text first to ensure quality and consistency
+        # Normalize text first
         text = self._normalize_text(text)
         
         # Return empty summary for empty input
         if not text:
             return "No text content to summarize."
-        
-        # Truncate if needed
-        if len(text) > 10000:
-            logger.warning(f"Input text is very long ({len(text)} chars). Truncating to 10000 chars.")
-            text = text[:10000]
-        
-        # Create enhanced prompts with explicit anti-repetition instructions
-        if length == "short":
-            prompt = f"""Generate a concise and brief summary of the following text in a few sentences (around 50 words). 
             
-IMPORTANT GUIDELINES:
-1. DO NOT repeat the same information or facts
-2. AVOID redundant phrases or sentences
-3. Present each distinct fact, concept or statistic EXACTLY ONCE
-4. Use clear, varied language without repetitive patterns
-5. Structure the content logically with good flow between ideas
-
-Text to summarize:
-{text}"""
-            max_new_tokens = 75
-            min_new_tokens = 30
-        elif length == "long":
-            prompt = f"""Generate a comprehensive and detailed summary of the following text, covering all key points (around 250-300 words).
-
-IMPORTANT GUIDELINES:
-1. DO NOT repeat the same information, even if phrased differently
-2. Ensure each paragraph covers distinct aspects without redundancy
-3. Use varied sentence structures and transitions
-4. Present numerical data clearly and exactly once per distinct data point
-5. Maintain logical organization with clear progression of ideas
-6. Synthesize related information instead of listing similar facts separately
-
-Text to summarize:
-{text}"""
-            max_new_tokens = 350
-            min_new_tokens = 200
-        else:  # normal
-            prompt = f"""Summarize the following text with moderate detail (around 150 words).
-
-IMPORTANT GUIDELINES:
-1. NEVER repeat information or concepts
-2. Each sentence must contain unique content not mentioned elsewhere
-3. Use precise language and avoid redundant descriptions
-4. Create a logical flow where each point builds on previous ones
-5. Synthesize similar points rather than repeating them
-
-Text to summarize:
-{text}"""
-            max_new_tokens = 200
-            min_new_tokens = 100
+        # Strategy selection based on text length
+        # FLAN-T5-small has a context limit of 512 tokens. 
+        # Approx chars per token ~4. So 2000 chars is a safe upper bound.
+        if len(text) > 2500:
+            logger.info(f"Input text is long ({len(text)} chars). Using Refine strategy.")
+            return self._generate_refine_summary(text, length)
+        
+        # Standard summarization with Few-Shot Prompting
+        # Examples help guide the model to the desired style and format
+        prompt_template = self._get_few_shot_prompt(length)
+        prompt = prompt_template.format(text=text)
+        
+        # Configure generation parameters based on length
+        max_new_tokens = {
+            "short": 75,
+            "normal": 200,
+            "long": 350
+        }.get(length, 200)
+        
+        min_new_tokens = {
+            "short": 30,
+            "normal": 100,
+            "long": 200
+        }.get(length, 100)
         
         # Generate summary
-        logger.info(f"Generating {length} summary (max_tokens={max_new_tokens})...")
+        logger.info(f"Generating {length} summary (standard)...")
         
         result = self.pipe(
             prompt,
@@ -248,22 +220,102 @@ Text to summarize:
         )
         
         summary = result[0]['generated_text']
-        logger.info(f"Summary generated: {len(summary)} chars")
         
-        # Calculate repetition metrics for raw summary
-        raw_metrics = self.analyze_repetition(summary)
-        logger.info(f"Raw summary repetition score: {raw_metrics['repetition_score']:.4f}")
-        
-        # Post-process the summary to improve quality
+        # Post-process
         cleaned_summary = self._post_process_summary(summary)
-        
-        # Calculate metrics after cleaning to measure improvement
-        cleaned_metrics = self.analyze_repetition(cleaned_summary)
-        logger.info(f"Summary post-processed: {len(cleaned_summary)} chars")
-        logger.info(f"Cleaned summary repetition score: {cleaned_metrics['repetition_score']:.4f}")
-        logger.info(f"Repetition reduction: {raw_metrics['repetition_score'] - cleaned_metrics['repetition_score']:.4f}")
-        
         return cleaned_summary
+
+    def _generate_refine_summary(self, text: str, length: str) -> str:
+        """
+        Generate summary for long texts using a Refine (Chunk-and-Update) strategy.
+        
+        Algorithm:
+        1. Split text into manageable chunks
+        2. Summarize the first chunk
+        3. For subsequent chunks, ask model to update the summary with new info
+        
+        Args:
+            text: Long input text
+            length: Desired summary length
+            
+        Returns:
+            Refined summary covering the entire text
+        """
+        # Split text into chunks (approx 2000 chars each to fit in context)
+        chunk_size = 2000
+        overlap = 100
+        chunks = []
+        
+        for i in range(0, len(text), chunk_size - overlap):
+            chunks.append(text[i:i + chunk_size])
+            
+        logger.info(f"Split long text into {len(chunks)} chunks for refinement")
+        
+        # Step 1: Summarize first chunk
+        current_summary = self.generate_summary(chunks[0], length)
+        
+        # Step 2: Refine with subsequent chunks
+        for i, chunk in enumerate(chunks[1:], 1):
+            logger.info(f"Refining summary with chunk {i+1}/{len(chunks)}")
+            
+            refine_prompt = f"""
+Existing summary: {current_summary}
+
+New context: {chunk}
+
+Task: Update and refine the existing summary to include key information from the new context. 
+Keep the summary coherent and flow well. Do not increase the length significantly unless necessary.
+Updated summary:"""
+            
+            # Generate refined summary
+            result = self.pipe(
+                refine_prompt,
+                do_sample=True,
+                temperature=0.6, # Slightly lower temp for stability in refinement
+                max_new_tokens=300, # Allow room for expansion
+                min_length=100
+            )
+            
+            current_summary = result[0]['generated_text']
+            
+        return self._post_process_summary(current_summary)
+
+    def _get_few_shot_prompt(self, length: str) -> str:
+        """
+        Returns a prompt template with few-shot examples based on desired length.
+        """
+        if length == "short":
+            return """Generate a concise summary (approx 50 words). Focus only on the main idea.
+
+Example:
+Input: The solar system formed 4.6 billion years ago from the gravitational collapse of a giant interstellar molecular cloud. The vast majority of the system's mass is in the Sun, with the majority of the remaining mass contained in Jupiter. The four smaller inner planets, Mercury, Venus, Earth and Mars, are terrestrial planets, being primarily composed of rock and metal.
+Summary: The solar system formed 4.6 billion years ago from a collapsing molecular cloud. Most mass is in the Sun, followed by Jupiter. The four inner terrestrial planets (Mercury, Venus, Earth, Mars) are rock and metal.
+
+Task:
+Input: {text}
+Summary:"""
+
+        elif length == "long":
+            return """Generate a detailed and comprehensive summary (approx 250 words). Include specific facts, figures, and key details. Structure it logically.
+
+Example:
+Input: [Technical article about photosynthesis]
+Summary: Photosynthesis is the process used by plants, algae, and certain bacteria to harness energy from sunlight and turn it into chemical energy. This energy is stored in carbohydrate molecules, such as sugars, which are synthesized from carbon dioxide and water. The process releases oxygen as a byproduct. Photosynthesis limits the amount of carbon dioxide in the atmosphere and provides oxygen for other life forms. It principally occurs in chloroplasts, which contain the pigment chlorophyll. The overall reaction can be summarized as: 6CO2 + 6H2O + light energy -> C6H12O6 + 6O2. There are two stages: light-dependent reactions and the Calvin cycle.
+
+Task:
+Input: {text}
+Summary:"""
+
+        else: # normal
+            return """Generate a balanced summary (approx 150 words). Capture the main points and key supporting details without unnecessary fluff.
+
+Example:
+Input: The Industrial Revolution was a period of major mechanization and innovation that began in Great Britain during the mid-18th century and early 19th century and later spread throughout much of the world. The American Industrial Revolution, sometimes referred to as the Second Industrial Revolution, began in the 1870s and continued through World War II. This era saw the mechanization of agriculture and textile manufacturing and a revolution in power, including steam ships and railroads, that effected social, cultural and economic conditions.
+Summary: The Industrial Revolution, beginning in mid-18th century Britain, marked a major shift towards mechanization and innovation. It later spread globally, with the American Industrial Revolution (Second Industrial Revolution) starting in the 1870s. Key developments included the mechanization of agriculture and textiles, and breakthroughs in power like steam ships and railroads, fundamentally transforming social and economic structures.
+
+Task:
+Input: {text}
+Summary:"""
     
     def _post_process_summary(self, summary: str) -> str:
         """

@@ -46,6 +46,8 @@ For complete evaluation results and visualizations, see the [evaluation results 
 - **Clean UI**: Intuitive Streamlit interface with summary export capabilities
 
 ### Advanced Features
+- **Advanced Prompting**: Uses Few-Shot Prompting to guide the model towards specific summarization styles
+- **Long Document Handling**: Implements a "Refine" strategy to process documents of any length without truncation
 - **Batch Processing**: Process multiple PDFs through scripts and CLI tools
 - **User Feedback**: Rating system to collect feedback on summary quality
 - **Comprehensive Logging**: Detailed interaction logs for analysis

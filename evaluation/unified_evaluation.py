@@ -225,7 +225,20 @@ def evaluate_comprehensive(model_name="google/flan-t5-small", lora_weights_dir="
             
             # Generate summary with each parameter set
             for params_set in params_sets:
-                inputs = tokenizer(text, return_tensors="pt", max_length=512, truncation=True).to(device)
+                # Apply Few-Shot Prompt (matching Executor 'normal' strategy)
+                prompt_template = """Generate a balanced summary (approx 150 words). Capture the main points and key supporting details without unnecessary fluff.
+
+Example:
+Input: The Industrial Revolution was a period of major mechanization and innovation that began in Great Britain during the mid-18th century and early 19th century and later spread throughout much of the world. The American Industrial Revolution, sometimes referred to as the Second Industrial Revolution, began in the 1870s and continued through World War II. This era saw the mechanization of agriculture and textile manufacturing and a revolution in power, including steam ships and railroads, that effected social, cultural and economic conditions.
+Summary: The Industrial Revolution, beginning in mid-18th century Britain, marked a major shift towards mechanization and innovation. It later spread globally, with the American Industrial Revolution (Second Industrial Revolution) starting in the 1870s. Key developments included the mechanization of agriculture and textiles, and breakthroughs in power like steam ships and railroads, fundamentally transforming social and economic structures.
+
+Task:
+Input: {text}
+Summary:"""
+                
+                # Check context length to avoid truncation of the prompt itself
+                full_prompt = prompt_template.format(text=text)
+                inputs = tokenizer(full_prompt, return_tensors="pt", max_length=1024, truncation=True).to(device)
                 
                 # Generate summary
                 try:

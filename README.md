@@ -25,12 +25,12 @@ Our fine-tuned model has been comprehensively evaluated across various text type
 
 | Text Category | ROUGE-1 F1 | ROUGE-2 F1 | ROUGE-L F1 | BLEU-1 | BLEU-2 | BLEU-4 |
 |--------------|-----------|-----------|-----------|-------|-------|-------|
-| Narrative Text | 0.9200 | 0.8776 | 0.9000 | 0.8952 | 0.8779 | 0.8502 |
-| Medium News | 0.7470 | 0.7160 | 0.7470 | 0.7321 | 0.7187 | 0.6893 |
-| Technical | 0.6526 | 0.6452 | 0.6526 | 0.6398 | 0.6289 | 0.6105 |
-| Abstract | 0.6486 | 0.6389 | 0.6486 | 0.6317 | 0.6215 | 0.6010 |
-| Short Factual | 0.5424 | 0.3860 | 0.5085 | 0.5210 | 0.4972 | 0.4715 |
-| **Overall Average** | **0.7021** | **0.6527** | **0.6913** | **0.6840** | **0.6688** | **0.6445** |
+| Narrative Text | 0.3871 | 0.1143 | 0.2051 | 0.3871 | 0.1143 | 0.0606 |
+| Medium News | 0.4412 | 0.1818 | 0.2941 | 0.5500 | 0.1250 | 0.0000 |
+| Technical | 0.4348 | 0.1493 | 0.3478 | 0.4074 | 0.1429 | 0.0769 |
+| Abstract | 0.3117 | 0.0267 | 0.2078 | 0.2903 | 0.0278 | 0.0000 |
+| Short Factual | 0.6102 | 0.4211 | 0.6102 | 0.7619 | 0.5238 | 0.1000 |
+| **Overall Average** | **0.4202** | **0.1620** | **0.3283** | **0.4747** | **0.1722** | **0.0354** |
 
 For complete evaluation results and visualizations, see the [evaluation results directory](evaluation/results/) and the [unified evaluation documentation](docs/unified_evaluation.md).
 
@@ -328,9 +328,7 @@ Potential enhancements for future versions:
 
 ## 📝 Author
 
-- **Name**: Sanskriti Pal
-- **University**: IIT Goa
-- **Department**: BTech Mathematics And Computing 2027
+- **Project**: Smart Notes Summarizer
 
 ## 📄 License
 

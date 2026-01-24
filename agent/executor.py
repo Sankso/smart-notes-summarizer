@@ -16,8 +16,7 @@ Key functionalities:
 4. Advanced post-processing for quality improvement
 5. Repetition detection and metrics
 
-Authors: Sanskriti Pal
-Date: September 2025
+
 """
 
 import os

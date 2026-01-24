@@ -174,11 +174,6 @@ def display_sidebar():
     - PDF document processing
     - Smart text analysis
     - Fine-tuned AI summarization
-    
-    **Developer:**
-    - Name: Sanskriti Pal
-    - University: IIT Goa
-    - Department: BTech
     """)
     
     st.sidebar.header("Options")
@@ -501,7 +496,7 @@ def main():
     
     # Footer
     st.markdown("---")
-    st.caption("Smart Notes Summarizer - Developed by Sanskriti Pal, IIT Goa")
+    st.caption("Smart Notes Summarizer")
 
 
 if __name__ == "__main__":

@@ -16,8 +16,8 @@ from datetime import datetime
 from pathlib import Path
 import matplotlib.pyplot as plt
 from tqdm import tqdm
-import nltk
-from rouge_score import rouge_scorer
+from collections import defaultdict
+import logging
 
 # Configure logging
 logging.basicConfig(
@@ -26,6 +26,8 @@ logging.basicConfig(
     level=logging.INFO
 )
 logger = logging.getLogger(__name__)
+
+from evaluation.metrics import SummarizationMetrics
 
 # Sample articles of varying lengths and complexities
 EVALUATION_TEXTS = [
@@ -36,7 +38,8 @@ EVALUATION_TEXTS = [
         The Python programming language was created by Guido van Rossum and first released in 1991.
         It is known for its simple syntax and readability. Python is widely used in data science,
         web development, automation, and artificial intelligence.
-        """
+        """,
+        "reference_summary": "Python is a high-level programming language created by Guido van Rossum and released in 1991. Known for its readability and simple syntax, it is widely used in fields like data science, web development, and AI."
     },
     # Medium length news article
     {
@@ -51,7 +54,8 @@ EVALUATION_TEXTS = [
         Joe Biden on August 16, 2022. The bill was a slimmed down version of the Build Back Better Act, 
         which was blocked by Senators Joe Manchin and Kyrsten Sinema. After Manchin and Senate Majority 
         Leader Chuck Schumer reached a compromise, the bill was renamed and passed through the reconciliation process.
-        """
+        """,
+        "reference_summary": "The Inflation Reduction Act, signed by President Biden in August 2022, is a major U.S. climate law investing in clean energy and tax credits. Passed via reconciliation after a compromise between Schumer and Manchin, it also addresses healthcare and tax policy."
     },
     # Technical/scientific content
     {
@@ -66,7 +70,8 @@ EVALUATION_TEXTS = [
         efficient to train. They also capture long-range dependencies better than previous architectures. 
         Since their introduction in the "Attention is All You Need" paper by Vaswani et al. in 2017, 
         transformers have been the foundation for models like BERT, GPT, and T5.
-        """
+        """,
+        "reference_summary": "Transformers are deep learning models introduced in 2017 that revolutionized NLP using self-attention mechanisms to process sequences in parallel. This architecture, serving as the basis for BERT and GPT, overcomes the sequential limitations of RNNs and LSTMs."
     },
     # Abstract concepts
     {
@@ -80,7 +85,8 @@ EVALUATION_TEXTS = [
         is fundamental and cannot be reduced to physical processes, while others maintain that it will 
         eventually be explained through conventional science. The study of consciousness intersects 
         neuroscience, philosophy, psychology, and even physics, making it a truly interdisciplinary endeavor.
-        """
+        """,
+        "reference_summary": "Consciousness, the subjective awareness of existence, remains a major scientific mystery known as the 'hard problem.' Interdisciplinary theories range from neural complexity to quantum effects, with debate continuing on whether it is a fundamental property or a physical byproduct."
     },
     # Narrative text
     {
@@ -94,90 +100,11 @@ EVALUATION_TEXTS = [
         every day, his knowledge of literature as vast as the collection he'd curated over the decades. 
         Local legend held that the store contained every book ever written, if only one knew where to look. 
         And some customers swore that occasionally, they'd found books on the shelves that hadn't yet been written.
-        """
+        """,
+        "reference_summary": "Pembroke's Books & Curiosities was a timeless corner bookstore filled with aged paper and towering shelves. Run by the octogenarian Mr. Pembroke, the shop was rumored to contain every book ever written, including some that supposedly hadn't been written yet."
     }
 ]
 
-class MetricsCalculator:
-    """Simple metrics calculator for ROUGE and BLEU-like scores"""
-    
-    def __init__(self, use_stemmer=True):
-        self.rouge_scorer = rouge_scorer.RougeScorer(['rouge1', 'rouge2', 'rougeL'], use_stemmer=use_stemmer)
-        logger.info(f"Metrics calculator initialized (use_stemmer={use_stemmer})")
-        
-        # Download NLTK resources
-        try:
-            nltk.download('punkt', quiet=True)
-        except Exception as e:
-            logger.warning(f"Failed to download NLTK resources: {e}")
-    
-    def calculate_rouge(self, prediction, reference):
-        """Calculate ROUGE scores for a prediction-reference pair"""
-        return self.rouge_scorer.score(reference, prediction)
-    
-    def calculate_bleu(self, prediction, reference):
-        """Calculate BLEU-like scores based on n-gram overlap"""
-        # Tokenize text
-        reference_tokens = reference.lower().split()
-        prediction_tokens = prediction.lower().split()
-        
-        # Create n-grams
-        def get_ngrams(tokens, n):
-            return [tuple(tokens[i:i+n]) for i in range(len(tokens)-n+1)]
-        
-        # Unigram overlap (BLEU-1 like)
-        ref_unigrams = set(reference_tokens)
-        pred_unigrams = set(prediction_tokens)
-        overlap_unigrams = ref_unigrams.intersection(pred_unigrams)
-        bleu1 = len(overlap_unigrams) / max(1, len(pred_unigrams)) if pred_unigrams else 0
-        
-        # Bigram overlap (BLEU-2 like)
-        ref_bigrams = set(get_ngrams(reference_tokens, 2))
-        pred_bigrams = set(get_ngrams(prediction_tokens, 2))
-        overlap_bigrams = ref_bigrams.intersection(pred_bigrams)
-        bleu2 = len(overlap_bigrams) / max(1, len(pred_bigrams)) if pred_bigrams else 0
-        
-        # 4-gram overlap (BLEU-4 like)
-        ref_4grams = set(get_ngrams(reference_tokens, 4))
-        pred_4grams = set(get_ngrams(prediction_tokens, 4))
-        overlap_4grams = ref_4grams.intersection(pred_4grams)
-        bleu4 = len(overlap_4grams) / max(1, len(pred_4grams)) if pred_4grams else 0
-        
-        return {
-            "bleu1": bleu1,
-            "bleu2": bleu2,
-            "bleu4": bleu4
-        }
-    
-    def calculate_all_metrics(self, prediction, reference):
-        """Calculate both ROUGE and BLEU metrics"""
-        rouge_scores = self.calculate_rouge(reference, prediction)
-        bleu_scores = self.calculate_bleu(prediction, reference)
-        
-        # Calculate lexical diversity
-        prediction_tokens = prediction.lower().split()
-        lexical_diversity = len(set(prediction_tokens)) / len(prediction_tokens) if prediction_tokens else 0
-        
-        # Calculate other summary statistics
-        summary_stats = {
-            "length": len(prediction),
-            "num_sentences": len(nltk.sent_tokenize(prediction)),
-            "lexical_diversity": lexical_diversity
-        }
-        
-        # Return combined metrics
-        return {
-            # ROUGE metrics
-            "rouge1_f1": rouge_scores["rouge1"].fmeasure,
-            "rouge2_f1": rouge_scores["rouge2"].fmeasure,
-            "rougeL_f1": rouge_scores["rougeL"].fmeasure,
-            # BLEU metrics
-            "bleu1": bleu_scores["bleu1"],
-            "bleu2": bleu_scores["bleu2"],
-            "bleu4": bleu_scores["bleu4"],
-            # Summary statistics
-            "stats": summary_stats
-        }
 
 def evaluate_comprehensive(model_name="google/flan-t5-small", lora_weights_dir="./models/lora_weights", output_dir="./evaluation/results"):
     """
@@ -189,7 +116,6 @@ def evaluate_comprehensive(model_name="google/flan-t5-small", lora_weights_dir="
         import torch
         from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
         from peft import PeftModel, PeftConfig
-        from collections import defaultdict
         
         # Create output directory and plots subdirectory
         os.makedirs(output_dir, exist_ok=True)
@@ -237,7 +163,7 @@ def evaluate_comprehensive(model_name="google/flan-t5-small", lora_weights_dir="
         logger.info(f"Using device: {device}")
         
         # Initialize metrics calculator
-        metrics_calc = MetricsCalculator(use_stemmer=True)
+        metrics_calc = SummarizationMetrics(use_stemmer=True)
         
         # Results container
         results = {
@@ -251,6 +177,7 @@ def evaluate_comprehensive(model_name="google/flan-t5-small", lora_weights_dir="
         for i, item in enumerate(tqdm(EVALUATION_TEXTS, desc="Evaluating texts")):
             category = item["category"]
             text = item["text"].strip()
+            reference = item["reference_summary"]
             
             logger.info(f"Processing {category} text ({i+1}/{len(EVALUATION_TEXTS)})")
             
@@ -294,7 +221,7 @@ def evaluate_comprehensive(model_name="google/flan-t5-small", lora_weights_dir="
                 }
             ]
             
-            item_results = {"category": category, "text": text, "params_results": []}
+            item_results = {"category": category, "text": text, "reference": reference, "params_results": []}
             
             # Generate summary with each parameter set
             for params_set in params_sets:
@@ -309,9 +236,8 @@ def evaluate_comprehensive(model_name="google/flan-t5-small", lora_weights_dir="
                     )
                     summary = tokenizer.decode(outputs[0], skip_special_tokens=True)
                     
-                    # Calculate metrics (using first few sentences as reference for simplicity)
-                    reference = " ".join(nltk.sent_tokenize(text)[:3])
-                    metrics = metrics_calc.calculate_all_metrics(summary, reference)
+                    # Calculate metrics using manual reference
+                    metrics = metrics_calc.calculate_single_metrics(summary, reference)
                     
                     # Add to category metrics
                     results["metrics_by_category"][category].append({

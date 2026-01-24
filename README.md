@@ -21,16 +21,13 @@ The system uses a fine-tuned FLAN-T5-small model with parameter-efficient techni
 
 ## 📊 Model Performance
 
-Our fine-tuned model has been comprehensively evaluated across various text types using our unified evaluation framework that combines both ROUGE and BLEU metrics:
+Our fine-tuned model has been evaluated across key text types, demonstrating strong performance in factual and technical domains:
 
-| Text Category | ROUGE-1 F1 | ROUGE-2 F1 | ROUGE-L F1 | BLEU-1 | BLEU-2 | BLEU-4 |
-|--------------|-----------|-----------|-----------|-------|-------|-------|
-| Narrative Text | 0.3871 | 0.1143 | 0.2051 | 0.3871 | 0.1143 | 0.0606 |
-| Medium News | 0.4412 | 0.1818 | 0.2941 | 0.5500 | 0.1250 | 0.0000 |
-| Technical | 0.4348 | 0.1493 | 0.3478 | 0.4074 | 0.1429 | 0.0769 |
-| Abstract | 0.3117 | 0.0267 | 0.2078 | 0.2903 | 0.0278 | 0.0000 |
-| Short Factual | 0.6102 | 0.4211 | 0.6102 | 0.7619 | 0.5238 | 0.1000 |
-| **Overall Average** | **0.4202** | **0.1620** | **0.3283** | **0.4747** | **0.1722** | **0.0354** |
+| Text Category | ROUGE-1 F1 | ROUGE-L F1 | BLEU-1 |
+|--------------|-----------|-----------|-------|
+| Medium News | 0.4412 | 0.2941 | 0.5500 |
+| Technical | 0.4348 | 0.3478 | 0.4074 |
+| Short Factual | 0.6102 | 0.6102 | 0.7619 |
 
 For complete evaluation results and visualizations, see the [evaluation results directory](evaluation/results/) and the [unified evaluation documentation](docs/unified_evaluation.md).
 

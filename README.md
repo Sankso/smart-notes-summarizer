@@ -257,6 +257,7 @@ smart-notes-summarizer/
 │   ├── unified_evaluation.py   # Unified evaluation script for ROUGE and BLEU
 │   ├── analyze_results.py      # Analysis tools for evaluation results
 │   ├── evaluate.py             # Basic evaluation pipeline
+│   ├── metrics.py              # Standardized metrics calculation
 │   └── results/                # Evaluation results and visualizations
 │
 ├── finetuning/                 # Model fine-tuning tools
@@ -267,7 +268,8 @@ smart-notes-summarizer/
 │
 ├── tests/                      # Test suite
 │   ├── test_agent.py           # Tests for agent functionality
-│   └── test_metrics.py         # Tests for evaluation metrics
+│   ├── test_metrics.py         # Tests for evaluation metrics
+│   └── test_advanced_summarization.py # Tests for advanced summarization logic
 │
 ├── utils/                      # Utility functions
 │   ├── copy_model.py           # Model setup helper

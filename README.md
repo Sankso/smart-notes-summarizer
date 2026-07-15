@@ -44,7 +44,7 @@ An agentic multi-agent system that dynamically routes summarization tasks betwee
 
 ## Tech Stack
 
-`Python` · `Transformers` · `PEFT (LoRA)` · `Gemini API` · `Hugging Face` · `spaCy` · `PyTorch`
+`Python` · `Transformers` · `PEFT (LoRA)` · `Gemini API` · `Streamlit` · `Hugging Face` · `spaCy` · `PyTorch`
 
 ## Project Structure
 
@@ -63,6 +63,7 @@ smart-notes-summarizer/
 │   └── lora_weights/         # Pre-trained LoRA adapter weights
 ├── tests/
 │   └── test_summarization.py # Test suite
+├── streamlit_app.py          # Streamlit Web UI (Primary Interface)
 ├── main.py                   # CLI entry point
 ├── requirements.txt
 └── README.md
@@ -85,6 +86,13 @@ export GEMINI_API_KEY="your-api-key"
 
 ### Usage
 
+#### 1. Web UI (Recommended)
+```bash
+streamlit run streamlit_app.py
+```
+*Opens a premium dark-themed web interface at `http://localhost:8501` where you can paste text or upload PDFs.*
+
+#### 2. Command Line
 ```bash
 # Summarize a PDF
 python main.py --pdf path/to/document.pdf
@@ -94,9 +102,6 @@ python main.py --text "Your text here..."
 
 # Control summary length
 python main.py --pdf notes.pdf --length short   # short | normal | long
-
-# Save to custom file
-python main.py --pdf notes.pdf --output result.txt
 ```
 
 ### Run Tests
@@ -107,14 +112,14 @@ pytest tests/ -v
 
 ## How It Works
 
-1. **Ingestion**: PDFProcessor extracts text from unstructured PDFs (with OCR fallback for scanned documents)
-2. **Analysis**: PlannerAgent computes text complexity metrics (word count, sentence length, vocabulary complexity)
-3. **Routing**: GeminiSupervisor uses Gemini to analyze the text and decide the best processing strategy:
-   - `summarize_local` → Route to FLAN-T5 + LoRA (standard academic text)
-   - `summarize_gemini` → Route to Gemini API (complex/conversational text)
-   - `rewrite_gemini` → Route to Gemini API (short text needing polish)
-4. **Summarization**: The selected agent generates a summary. For long texts, the Executor uses a sliding-window chunking strategy
-5. **Keywords**: Multi-algorithmic extraction combines YAKE, RAKE, and TF-IDF/spaCy results
+1. **Ingestion**: `PDFProcessor` extracts text from unstructured PDFs (with OCR fallback for scanned documents)
+2. **Cleaning**: Aggressive regex strips Wikipedia-style citations (`[1]`, `[citation needed]`), fixes hyphenation, and removes duplicate spaces.
+3. **Chunking**: For long texts, a sliding-window strategy splits text into overlapping 2000-char chunks.
+4. **Analysis & Routing**: `GeminiSupervisor` analyzes each chunk and decides the processing strategy:
+   - `summarize_local` → Route to FLAN-T5 + LoRA
+   - `summarize_gemini` → Route to Gemini API
+5. **Keywords**: Multi-algorithmic extraction runs across chunks combining YAKE, RAKE, and TF-IDF.
+6. **Merging & Final Compression**: Chunk summaries are stitched together, and routed back through the pipeline for a final, comprehensive double-summarization pass to ensure a cohesive final output.
 
 ## Fine-Tuning
 

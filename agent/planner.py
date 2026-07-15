@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
 
 """
 Planner agent for Smart Notes Summarizer.

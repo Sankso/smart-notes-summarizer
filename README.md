@@ -1,283 +1,130 @@
 # Smart Notes Summarizer
 
-A powerful AI system for summarizing lecture notes, PDFs, and text documents using fine-tuned language models with an intelligent multi-agent architecture.
+An agentic multi-agent system that dynamically routes summarization tasks between a locally fine-tuned **FLAN-T5** model and the **Gemini API** based on text complexity. Ingests unstructured PDFs, generates semantic summaries, and extracts keywords using multi-algorithmic NLP.
 
-🎥 Demo
+## Architecture
 
-https://github.com/user-attachments/assets/d506410e-d983-44d3-b894-c69c83df464f
-
-## 📋 Overview
-
-Smart Notes Summarizer is designed to help students and professionals quickly extract key information from lengthy documents. The system employs a sophisticated multi-agent architecture:
-
-
-
-- A **Planner** agent that analyzes the input to determine the optimal processing strategy
-- An **Executor** agent that generates high-quality summaries using a fine-tuned language model
-- A **Keyword Extractor** that identifies key topics and themes from documents
-- A **Section Detector** that identifies document structure for more organized summaries
-
-The system uses a fine-tuned FLAN-T5-small model with parameter-efficient techniques (LoRA) to ensure high-quality summaries while maintaining reasonable computational requirements.
-
-## 📊 Model Performance
-
-Our fine-tuned model has been evaluated across key text types, demonstrating strong performance in factual and technical domains:
-
-| Text Category | ROUGE-1 F1 | ROUGE-L F1 | BLEU-1 |
-|--------------|-----------|-----------|-------|
-| Medium News | 0.4412 | 0.2941 | 0.5500 |
-| Technical | 0.4348 | 0.3478 | 0.4074 |
-| Short Factual | 0.6102 | 0.6102 | 0.7619 |
-
-For complete evaluation results and visualizations, see the [evaluation results directory](evaluation/results/) and the [unified evaluation documentation](docs/unified_evaluation.md).
-
-## 🚀 Features
-
-### Core Features
-- **PDF Processing**: Extract and summarize text from PDF files with automatic OCR fallback
-- **Multiple Summary Lengths**: Generate short, normal, or long summaries based on your needs
-- **Keyword Extraction**: Automatically identify key topics and themes using multiple algorithms
-- **Section Detection**: Intelligently identify document sections and summarize each separately
-- **Repetition Prevention**: Advanced algorithms to ensure concise, non-repetitive summaries
-- **Quality Metrics**: Built-in tools to evaluate summary quality and measure improvements
-- **Clean UI**: Intuitive Streamlit interface with summary export capabilities
-
-### Advanced Features
-- **Advanced Prompting**: Uses Few-Shot Prompting to guide the model towards specific summarization styles
-- **Long Document Handling**: Implements a "Refine" strategy to process documents of any length without truncation
-- **Batch Processing**: Process multiple PDFs through scripts and CLI tools
-- **User Feedback**: Rating system to collect feedback on summary quality
-- **Comprehensive Logging**: Detailed interaction logs for analysis
-- **Extensible Architecture**: Modular design for easy customization
-
-## 🧠 Model Fine-tuning
-
-The system uses a FLAN-T5-small model fine-tuned with Low-Rank Adaptation (LoRA) on summarization tasks:
-
-- **Base Model**: google/flan-t5-small
-- **Fine-tuning Method**: LoRA (r=16, alpha=32, targeting q and v modules)
-- **Dataset**: CNN/DailyMail 3.0.0 (train[:50000] subset)
-- **Training Parameters**: 4 epochs, batch size 2 with gradient accumulation 8, learning rate 3e-4
-- **Evaluation Metrics**: ROUGE-1/L F1 scores and BLEU-1 score
-
-To fine-tune your own model, use the provided notebook:
-
-```bash
-# Navigate to the finetuning directory
-cd finetuning
-
-# Run the training script
-python train_lora.py
-
-# OR use the Jupyter notebook
-# jupyter notebook train_lora_notebook.ipynb
+```
+┌──────────────────────────────────────────────────────────────┐
+│                    SmartSummarizerAgent                       │
+│                    (Orchestrator)                             │
+├──────────────────────────────────────────────────────────────┤
+│                                                              │
+│  ┌──────────────┐    ┌──────────────────┐                   │
+│  │ PDFProcessor │───▶│  PlannerAgent    │                   │
+│  │ (Ingestion)  │    │  (Complexity     │                   │
+│  │              │    │   Analysis)      │                   │
+│  └──────────────┘    └────────┬─────────┘                   │
+│                               │                              │
+│                    ┌──────────▼──────────┐                   │
+│                    │ GeminiSupervisor    │                   │
+│                    │ (Routing Brain)     │                   │
+│                    └──┬──────────────┬──┘                   │
+│                       │              │                       │
+│              ┌────────▼───┐   ┌──────▼──────┐               │
+│              │  Executor  │   │ Gemini API  │               │
+│              │ FLAN-T5    │   │ (Complex    │               │
+│              │ + LoRA     │   │  texts)     │               │
+│              └────────────┘   └─────────────┘               │
+│                                                              │
+│              ┌────────────────────────┐                      │
+│              │  KeywordExtractor      │                      │
+│              │  YAKE + RAKE + TF-IDF  │                      │
+│              └────────────────────────┘                      │
+└──────────────────────────────────────────────────────────────┘
 ```
 
-## 💻 Installation & Setup
+## Key Features
 
-1. **Clone this repository**:
-```bash
-git clone https://github.com/yourusername/smart-notes-summarizer.git
-cd smart-notes-summarizer
-```
+- **Agentic Multi-Agent Workflow**: Gemini Supervisor dynamically routes tasks between local FLAN-T5 and external Gemini API based on text complexity analysis
+- **Automated Document Pipeline**: Ingests, parses, and structures unstructured PDFs into semantic summaries (PyPDF2 + OCR fallback)
+- **Sliding-Window Chunking**: Optimizes context window performance by compressing payload sizes while eliminating data loss for long documents
+- **Multi-Algorithmic Keyword Extraction**: Combines YAKE, RAKE, and TF-IDF with spaCy NLP for robust keyword identification
+- **PEFT Fine-Tuning**: LoRA adapters for parameter-efficient fine-tuning of FLAN-T5 on summarization tasks
 
-2. **Install dependencies**:
-```bash
-pip install -r requirements.txt
-```
+## Tech Stack
 
-3. **Set up your fine-tuned model**:
+`Python` · `Transformers` · `PEFT (LoRA)` · `Gemini API` · `Hugging Face` · `spaCy` · `PyTorch`
 
-   a. Place your fine-tuned model files in the `models/lora_weights` directory:
-      - adapter_config.json
-      - adapter_model.safetensors
-      - special_tokens_map.json
-      - spiece.model
-      - tokenizer_config.json
-      - tokenizer.json
-   
-   b. OR use the provided helper script:
-   ```bash
-   python utils/copy_model.py path/to/your/model/files
-   ```
-   
-   c. OR use the PowerShell script (Windows):
-   ```powershell
-   .\utils\copy_model.ps1 path\to\your\model\files
-   ```
-
-4. **Run evaluation (optional)**:
-```bash
-# Run unified evaluation
-python evaluation/unified_evaluation.py
-
-# Analyze evaluation results (replace YYYYMMDD_HHMMSS with actual timestamp)
-python evaluation/analyze_results.py --result_file evaluation/results/unified_evaluation_YYYYMMDD_HHMMSS.json
-```
-
-## 🔧 Usage
-
-### Streamlit UI (Recommended)
-
-The easiest way to use the summarizer is through the intuitive web interface:
-
-```bash
-streamlit run ui/app.py
-```
-
-The UI provides several options:
-- Upload PDF files or paste text directly
-- Choose summary length (short, normal, long)
-- Enable keyword extraction to identify key topics
-- Enable section detection for structured documents
-- Export summaries to text files
-- Rate summary quality to provide feedback
-
-### Command Line Interface
-
-Process documents directly from the command line:
-
-```bash
-# Summarize a PDF
-python main.py --pdf "path/to/document.pdf" --output "summary.txt"
-
-# Launch the Streamlit UI
-python main.py --ui
-```
-
-
-## 📊 Quality Evaluation
-
-The system includes built-in quality evaluation and repetition detection:
-
-- **Repetition Score**: Measures and reduces repetitive content in summaries
-- **Unique Word Ratio**: Ensures vocabulary diversity in generated content
-- **ROUGE scores**: Evaluates overlap with reference summaries (when available)
-- **BLEU scores**: Evaluates n-gram precision compared to reference summaries
-
-For formal evaluation, run:
-```bash
-python evaluation/unified_evaluation.py
-```
-
-This generates comprehensive evaluation results and stores them in the `evaluation/results` directory with timestamps for easy tracking.
-
-## 🧪 Testing and Validation
-
-Run tests to ensure everything is working correctly:
-
-```bash
-# Run all tests
-python -m pytest tests/
-
-# Test model loading
-python test_model_loading.py
-```
-
-## 👨‍💻 Project Structure
+## Project Structure
 
 ```
 smart-notes-summarizer/
-│
-├── agent/                      # Core summarization components
-│   ├── agent.py                # Main agent coordinator
-│   ├── executor.py             # Summary generation with LLM
-│   ├── keyword_extractor.py    # Topic and keyword identification
-│   ├── pdf_processor.py        # PDF text extraction
-│   ├── planner.py              # Text analysis and strategy planning
-│   └── section_detector.py     # Document structure analysis
-│
-├── ui/                         # User interface
-│   ├── app.py                  # Streamlit web application
-│   └── test_app.py             # UI tests
-│
-├── scripts/                    # Helper scripts and integration tools
-│   ├── batch_processor.py      # Multiple document processing
-│   ├── cli_app.py              # Command-line interface
-│   ├── process_pdfs.py         # PDF processing utilities
-│   └── ui_integration.py       # Integration with external UIs
-│
-├── models/                     # Model storage
-│   └── lora_weights/           # Fine-tuned model weights
-│
-├── evaluation/                 # Quality evaluation tools
-│   ├── unified_evaluation.py   # Unified evaluation script for ROUGE and BLEU
-│   ├── analyze_results.py      # Analysis tools for evaluation results
-│   ├── evaluate.py             # Basic evaluation pipeline
-│   ├── metrics.py              # Standardized metrics calculation
-│   └── results/                # Evaluation results and visualizations
-│
-├── finetuning/                 # Model fine-tuning tools
-│   ├── download_model.py       # Download base models
-│   ├── train_lora.py           # LoRA fine-tuning script
-│   ├── train_lora_notebook.ipynb # Jupyter notebook for fine-tuning
-│   └── inference.py            # Model inference testing
-│
-├── tests/                      # Test suite
-│   ├── test_agent.py           # Tests for agent functionality
-│   ├── test_metrics.py         # Tests for evaluation metrics
-│   └── test_advanced_summarization.py # Tests for advanced summarization logic
-│
-├── utils/                      # Utility functions
-│   ├── copy_model.py           # Model setup helper
-│   └── copy_model.ps1          # PowerShell model setup helper
-│
-├── docs/                       # Documentation
-│   ├── architecture.md         # System architecture details
-│   └── logs.md                 # Interaction logs
-│
-├── exports/                    # Default location for exported summaries
-│
-├── main.py                     # Main entry point
-├── requirements.txt            # Project dependencies
-├── README.md                   # Project documentation
-├── README_INTEGRATION.md       # Integration documentation
-├── RUNNING.md                  # Instructions for running the application
-├── USER_GUIDE.md               # User guide and usage instructions
-├── test_model_loading.py       # Test script for model loading
-└── notebook28d9eb154b (1).ipynb # Additional development notebook
+├── agent/
+│   ├── agent.py              # Main orchestrator
+│   ├── brain.py              # Gemini Supervisor (routing brain)
+│   ├── planner.py            # Text complexity analyzer
+│   ├── executor.py           # FLAN-T5 + LoRA with sliding-window chunking
+│   ├── pdf_processor.py      # PDF ingestion (PyPDF2 + OCR)
+│   └── keyword_extractor.py  # Multi-algorithmic extraction
+├── finetuning/
+│   └── train_lora.py         # LoRA fine-tuning script
+├── models/
+│   └── lora_weights/         # Pre-trained LoRA adapter weights
+├── tests/
+│   └── test_summarization.py # Test suite
+├── main.py                   # CLI entry point
+├── requirements.txt
+└── README.md
 ```
 
-## 🏗️ System Architecture
+## Quick Start
 
-The Smart Notes Summarizer uses a multi-agent architecture to process documents:
+### Installation
 
-1. **Document Processing Flow:**
-   - Input (PDF or text) → Text Extraction → Analysis → Summary Generation → Post-processing → Output
+```bash
+pip install -r requirements.txt
+python -m spacy download en_core_web_sm
+```
 
-2. **Key Components:**
-   - **Agent Coordinator** (`agent.py`): Orchestrates the entire process and manages other components
-   - **PDF Processor** (`pdf_processor.py`): Extracts text from PDFs with fallback to OCR for images/scans
-   - **Planner** (`planner.py`): Analyzes text complexity and determines optimal processing strategy
-   - **Executor** (`executor.py`): Generates summaries using the fine-tuned model with anti-repetition techniques
-   - **Keyword Extractor** (`keyword_extractor.py`): Uses multiple algorithms to identify key topics
-   - **Section Detector** (`section_detector.py`): Identifies document sections for structured summaries
+### Set up Gemini API (optional — falls back to local model)
 
-3. **Model Architecture:**
-   - Base model: FLAN-T5-small (250M parameters)
-   - Fine-tuning: LoRA (Low-Rank Adaptation)
-   - Inference: CPU-compatible with GPU acceleration when available
-   - Input limit: 10,000 characters per summary (configurable)
+```bash
+export GEMINI_API_KEY="your-api-key"
+```
 
-4. **Post-processing Pipeline:**
-   - Repetition detection and elimination
-   - Formatting and structural improvements
-   - Quality metrics calculation
+### Usage
 
-## ✨ Future Improvements
+```bash
+# Summarize a PDF
+python main.py --pdf path/to/document.pdf
 
-Potential enhancements for future versions:
+# Summarize text directly
+python main.py --text "Your text here..."
 
-- Multi-language support
-- Document comparison and cross-referencing
-- Interactive summaries with expandable sections
-- Integration with note-taking applications
-- Cloud-based API for remote processing
+# Control summary length
+python main.py --pdf notes.pdf --length short   # short | normal | long
 
-## 📝 Author
+# Save to custom file
+python main.py --pdf notes.pdf --output result.txt
+```
 
-- **Project**: Smart Notes Summarizer
+### Run Tests
 
-## 📄 License
+```bash
+pytest tests/ -v
+```
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+## How It Works
+
+1. **Ingestion**: PDFProcessor extracts text from unstructured PDFs (with OCR fallback for scanned documents)
+2. **Analysis**: PlannerAgent computes text complexity metrics (word count, sentence length, vocabulary complexity)
+3. **Routing**: GeminiSupervisor uses Gemini to analyze the text and decide the best processing strategy:
+   - `summarize_local` → Route to FLAN-T5 + LoRA (standard academic text)
+   - `summarize_gemini` → Route to Gemini API (complex/conversational text)
+   - `rewrite_gemini` → Route to Gemini API (short text needing polish)
+4. **Summarization**: The selected agent generates a summary. For long texts, the Executor uses a sliding-window chunking strategy
+5. **Keywords**: Multi-algorithmic extraction combines YAKE, RAKE, and TF-IDF/spaCy results
+
+## Fine-Tuning
+
+To fine-tune FLAN-T5 with LoRA on your own dataset:
+
+```bash
+python finetuning/train_lora.py \
+  --dataset_path ./data/my_dataset \
+  --model_name google/flan-t5-small \
+  --epochs 3 \
+  --lora_r 16 \
+  --lora_alpha 32
+```

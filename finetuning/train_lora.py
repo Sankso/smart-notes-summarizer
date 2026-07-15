@@ -3,30 +3,34 @@
 
 """
 Fine-tuning script with Parameter-Efficient Fine-Tuning (LoRA) for summarization models.
-Based on the successful notebook used to create the finetuned model.
+Uses PEFT (LoRA) to fine-tune FLAN-T5 on summarization datasets with minimal compute.
 """
 
 import os
 import argparse
 import logging
 import torch
+from typing import Optional, List
+from datetime import datetime
 from pathlib import Path
-import shutil
 
 from transformers import (
     AutoModelForSeq2SeqLM, 
     AutoTokenizer, 
     DataCollatorForSeq2Seq,
-    TrainingArguments, 
-    Trainer
+    Seq2SeqTrainingArguments, 
+    Seq2SeqTrainer
 )
-from datasets import load_dataset
-from peft import LoraConfig, get_peft_model
+from datasets import load_dataset, load_from_disk, DatasetDict
+from peft import LoraConfig, get_peft_model, TaskType
 
 logger = logging.getLogger(__name__)
+
+
+class LoRATrainer:
     """
-    LoRA fine-tuning for seq2seq models (e.g., T5).
-    Uses Parameter-Efficient Fine-Tuning to train only a small set of parameters.
+    LoRA fine-tuning for seq2seq models (e.g., FLAN-T5).
+    Uses Parameter-Efficient Fine-Tuning to train only a small set of adapter parameters.
     """
     
     def __init__(self,
@@ -57,7 +61,6 @@ logger = logging.getLogger(__name__)
         self.max_input_length = max_input_length
         self.max_output_length = max_output_length
         
-        # Create output directory if it doesn't exist
         os.makedirs(output_dir, exist_ok=True)
         
         logger.info(f"Initializing LoRA trainer with {model_name}")
@@ -82,7 +85,7 @@ logger = logging.getLogger(__name__)
         Args:
             dataset_path: Path to the processed dataset
             per_device_train_batch_size: Batch size per GPU/TPU core
-            gradient_accumulation_steps: Number of updates steps to accumulate before backward pass
+            gradient_accumulation_steps: Steps to accumulate before backward pass
             learning_rate: Initial learning rate
             num_train_epochs: Number of training epochs
             warmup_ratio: Ratio of steps for learning rate warmup
@@ -120,7 +123,6 @@ logger = logging.getLogger(__name__)
         
         # Define LoRA configuration
         if target_modules is None:
-            # Default target modules for T5 models
             target_modules = ["q", "v"]
         
         logger.info(f"Configuring LoRA for target modules: {target_modules}")
@@ -144,7 +146,6 @@ logger = logging.getLogger(__name__)
         logger.info(f"Parameter efficiency: {trainable_params/total_params*100:.2f}%")
         
         # Prepare data collator
-        logger.info("Preparing data collator")
         data_collator = DataCollatorForSeq2Seq(
             tokenizer=tokenizer,
             model=model,
@@ -182,7 +183,6 @@ logger = logging.getLogger(__name__)
         )
         
         # Create trainer
-        logger.info("Creating trainer")
         trainer = Seq2SeqTrainer(
             model=model,
             args=training_args,
@@ -200,7 +200,6 @@ logger = logging.getLogger(__name__)
         final_model_path = os.path.join(self.output_dir, "lora_weights")
         logger.info(f"Saving LoRA weights to {final_model_path}")
         
-        # Save only LoRA weights
         model.save_pretrained(final_model_path)
         tokenizer.save_pretrained(final_model_path)
         
@@ -209,7 +208,7 @@ logger = logging.getLogger(__name__)
     
     def _prepare_dataset(self, dataset: DatasetDict, tokenizer) -> DatasetDict:
         """
-        Prepare and tokenize the dataset.
+        Prepare and tokenize the dataset for training.
         
         Args:
             dataset: Input dataset
@@ -218,14 +217,11 @@ logger = logging.getLogger(__name__)
         Returns:
             Tokenized dataset
         """
-        # Add prefix for T5 models
         prefix = "summarize: "
         
         def preprocess_function(examples):
-            # Add prefix to the inputs
             inputs = [prefix + doc for doc in examples["text"]]
             
-            # Tokenize inputs
             model_inputs = tokenizer(
                 inputs, 
                 max_length=self.max_input_length,
@@ -233,7 +229,6 @@ logger = logging.getLogger(__name__)
                 padding=False
             )
             
-            # Tokenize targets
             labels = tokenizer(
                 examples["summary"],
                 max_length=self.max_output_length,
@@ -244,7 +239,6 @@ logger = logging.getLogger(__name__)
             model_inputs["labels"] = labels["input_ids"]
             return model_inputs
         
-        # Apply preprocessing to each split
         tokenized_dataset = {}
         for split, data in dataset.items():
             tokenized_dataset[split] = data.map(
@@ -252,116 +246,49 @@ logger = logging.getLogger(__name__)
                 batched=True,
                 desc=f"Tokenizing {split} split"
             )
-            
-            # Log dataset stats
             logger.info(f"{split} split: {len(tokenized_dataset[split])} examples")
         
         return DatasetDict(tokenized_dataset)
 
 
 def main():
-    """Main function to run LoRA fine-tuning from command line"""
+    """Main function to run LoRA fine-tuning from command line."""
     parser = argparse.ArgumentParser(description="Fine-tune models with LoRA for summarization")
     
-    parser.add_argument(
-        "--model_name", 
-        type=str, 
-        default="google/flan-t5-small",
-        help="Base model to fine-tune"
-    )
-    
-    parser.add_argument(
-        "--dataset_path", 
-        type=str, 
-        required=True,
-        help="Path to the processed dataset"
-    )
-    
-    parser.add_argument(
-        "--output_dir", 
-        type=str, 
-        default="./models",
-        help="Directory to save fine-tuned model"
-    )
-    
-    parser.add_argument(
-        "--lora_r", 
-        type=int, 
-        default=16,
-        help="LoRA attention dimension"
-    )
-    
-    parser.add_argument(
-        "--lora_alpha", 
-        type=int, 
-        default=32,
-        help="LoRA alpha parameter"
-    )
-    
-    parser.add_argument(
-        "--lora_dropout", 
-        type=float, 
-        default=0.1,
-        help="Dropout probability for LoRA layers"
-    )
-    
-    parser.add_argument(
-        "--batch_size", 
-        type=int, 
-        default=8,
-        help="Training batch size per device"
-    )
-    
-    parser.add_argument(
-        "--gradient_accumulation", 
-        type=int, 
-        default=1,
-        help="Number of updates steps to accumulate before backward pass"
-    )
-    
-    parser.add_argument(
-        "--learning_rate", 
-        type=float, 
-        default=5e-4,
-        help="Initial learning rate"
-    )
-    
-    parser.add_argument(
-        "--epochs", 
-        type=int, 
-        default=3,
-        help="Number of training epochs"
-    )
-    
-    parser.add_argument(
-        "--max_input_length", 
-        type=int, 
-        default=512,
-        help="Maximum input sequence length"
-    )
-    
-    parser.add_argument(
-        "--max_output_length", 
-        type=int, 
-        default=150,
-        help="Maximum output sequence length"
-    )
-    
-    parser.add_argument(
-        "--fp16", 
-        action="store_true",
-        help="Whether to use 16-bit (mixed) precision"
-    )
+    parser.add_argument("--model_name", type=str, default="google/flan-t5-small",
+                       help="Base model to fine-tune")
+    parser.add_argument("--dataset_path", type=str, required=True,
+                       help="Path to the processed dataset")
+    parser.add_argument("--output_dir", type=str, default="./models",
+                       help="Directory to save fine-tuned model")
+    parser.add_argument("--lora_r", type=int, default=16,
+                       help="LoRA attention dimension")
+    parser.add_argument("--lora_alpha", type=int, default=32,
+                       help="LoRA alpha parameter")
+    parser.add_argument("--lora_dropout", type=float, default=0.1,
+                       help="Dropout probability for LoRA layers")
+    parser.add_argument("--batch_size", type=int, default=8,
+                       help="Training batch size per device")
+    parser.add_argument("--gradient_accumulation", type=int, default=1,
+                       help="Gradient accumulation steps")
+    parser.add_argument("--learning_rate", type=float, default=5e-4,
+                       help="Initial learning rate")
+    parser.add_argument("--epochs", type=int, default=3,
+                       help="Number of training epochs")
+    parser.add_argument("--max_input_length", type=int, default=512,
+                       help="Maximum input sequence length")
+    parser.add_argument("--max_output_length", type=int, default=150,
+                       help="Maximum output sequence length")
+    parser.add_argument("--fp16", action="store_true",
+                       help="Whether to use 16-bit (mixed) precision")
     
     args = parser.parse_args()
     
-    # Configure logging
     logging.basicConfig(
         level=logging.INFO,
         format="%(asctime)s [%(levelname)s] %(message)s"
     )
     
-    # Initialize trainer
     trainer = LoRATrainer(
         model_name=args.model_name,
         output_dir=args.output_dir,
@@ -372,7 +299,6 @@ def main():
         max_output_length=args.max_output_length
     )
     
-    # Run training
     trainer.train(
         dataset_path=args.dataset_path,
         per_device_train_batch_size=args.batch_size,

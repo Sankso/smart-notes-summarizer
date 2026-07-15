@@ -2,28 +2,32 @@
 # -*- coding: utf-8 -*-
 
 """
-PDF processing utilities for Smart Notes Summarizer.
-Provides advanced PDF text extraction capabilities beyond basic PyPDF2 extraction.
+PDF processing module for Smart Notes Summarizer.
+
+Automated document pipeline to ingest, parse, and extract text from
+unstructured PDFs. Uses PyMuPDF (fitz) as the primary extraction engine
+with pytesseract OCR fallback for scanned documents.
+
+Pipeline: PDF Upload → Text Extraction → Preprocessing → Clean Text
 """
 
 import os
+import re
 import logging
-import tempfile
-from typing import List, Optional
+from typing import Optional
 
-import PyPDF2
-from pdf2image import convert_from_path
-import pytesseract
-from PIL import Image
+import fitz  # PyMuPDF
 
 logger = logging.getLogger(__name__)
 
+
 class PDFProcessor:
     """
-    Provides advanced PDF processing capabilities, including:
-    - Standard text extraction
-    - OCR for scanned documents
-    - Layout analysis and preservation
+    PDF ingestion pipeline with multi-strategy text extraction.
+    
+    Strategies (in order of preference):
+    1. PyMuPDF (fitz) — fast, handles most PDFs with layout preservation
+    2. OCR via pytesseract — fallback for scanned/image-based PDFs
     """
     
     def __init__(self, 
@@ -46,39 +50,43 @@ class PDFProcessor:
     
     def extract_text(self, pdf_path: str, force_ocr: bool = False) -> str:
         """
-        Extract text from a PDF file, using OCR if needed.
+        Extract text from a PDF file using PyMuPDF, with OCR fallback.
         
         Args:
             pdf_path: Path to the PDF file
             force_ocr: Force OCR processing even for regular PDFs
             
         Returns:
-            Extracted text content
+            Extracted and preprocessed text content
         """
         if not os.path.exists(pdf_path):
             logger.error(f"PDF file not found: {pdf_path}")
             return f"Error: PDF file not found at {pdf_path}"
         
-        # Try standard extraction first unless forced to use OCR
+        # Try PyMuPDF extraction first unless forced to use OCR
         if not force_ocr:
-            text = self._extract_with_pypdf2(pdf_path)
+            text = self._extract_with_pymupdf(pdf_path)
             
-            # Check if enough text was extracted
             if self._is_extraction_sufficient(text):
-                logger.info(f"Standard extraction successful for {pdf_path}")
-                return text
+                logger.info(f"PyMuPDF extraction successful for {pdf_path}")
+                return self._preprocess_text(text)
         
         # Fall back to OCR if enabled and standard extraction failed
         if self.ocr_enabled:
-            logger.info(f"Using OCR for {pdf_path} (standard extraction insufficient)")
-            return self._extract_with_ocr(pdf_path)
+            logger.info(f"Using OCR for {pdf_path} (PyMuPDF extraction insufficient)")
+            text = self._extract_with_ocr(pdf_path)
+            return self._preprocess_text(text)
         else:
-            logger.warning(f"Standard extraction insufficient but OCR is disabled")
-            return text  # Return whatever was extracted, even if insufficient
+            logger.warning("PyMuPDF extraction insufficient but OCR is disabled")
+            return self._preprocess_text(text)
     
-    def _extract_with_pypdf2(self, pdf_path: str) -> str:
+    def _extract_with_pymupdf(self, pdf_path: str) -> str:
         """
-        Extract text using PyPDF2.
+        Extract text using PyMuPDF (fitz).
+        
+        PyMuPDF provides fast, high-quality text extraction with layout
+        preservation. It handles most PDF types including those with
+        complex formatting, tables, and multi-column layouts.
         
         Args:
             pdf_path: Path to the PDF file
@@ -87,30 +95,32 @@ class PDFProcessor:
             Extracted text
         """
         try:
-            with open(pdf_path, 'rb') as file:
-                reader = PyPDF2.PdfReader(file)
-                text = ""
+            doc = fitz.open(pdf_path)
+            text = ""
+            
+            for i, page in enumerate(doc):
+                # Extract text with layout preservation
+                page_text = page.get_text("text")
+                text += page_text + "\n\n"
                 
-                # Extract text from each page
-                for i, page in enumerate(reader.pages):
-                    page_text = page.extract_text()
-                    text += page_text + "\n\n"
-                    
-                    # Log page statistics
-                    if i < 3 or i == len(reader.pages) - 1:
-                        char_count = len(page_text) if page_text else 0
-                        logger.debug(f"Page {i+1}: {char_count} chars extracted")
-                
-                logger.info(f"PyPDF2 extracted {len(text)} chars from {len(reader.pages)} pages")
-                return text
+                if i < 3 or i == len(doc) - 1:
+                    char_count = len(page_text) if page_text else 0
+                    logger.debug(f"Page {i+1}: {char_count} chars extracted")
+            
+            doc.close()
+            logger.info(f"PyMuPDF extracted {len(text)} chars from {len(doc)} pages")
+            return text
                 
         except Exception as e:
-            logger.error(f"Error in PyPDF2 extraction: {str(e)}")
+            logger.error(f"Error in PyMuPDF extraction: {str(e)}")
             return ""
     
     def _extract_with_ocr(self, pdf_path: str) -> str:
         """
-        Extract text using OCR (convert PDF to images first).
+        Extract text using OCR (convert PDF pages to images first).
+        
+        Falls back to this method when PyMuPDF extraction yields
+        insufficient text (typically for scanned/image-based PDFs).
         
         Args:
             pdf_path: Path to the PDF file
@@ -119,7 +129,9 @@ class PDFProcessor:
             Extracted text
         """
         try:
-            # Convert PDF to images
+            from pdf2image import convert_from_path
+            import pytesseract
+            
             logger.info(f"Converting PDF to images (DPI: {self.dpi})")
             images = convert_from_path(
                 pdf_path, 
@@ -128,7 +140,6 @@ class PDFProcessor:
                 last_page=25  # Limit to 25 pages for performance
             )
             
-            # Extract text from each image
             logger.info(f"Performing OCR on {len(images)} pages")
             text = ""
             
@@ -136,16 +147,58 @@ class PDFProcessor:
                 page_text = pytesseract.image_to_string(image, lang=self.language)
                 text += page_text + "\n\n"
                 
-                # Log progress for every few pages
                 if i % 5 == 0 or i == len(images) - 1:
                     logger.debug(f"OCR progress: {i+1}/{len(images)} pages")
             
             logger.info(f"OCR extracted {len(text)} chars")
             return text
             
+        except ImportError as e:
+            logger.error(f"OCR dependencies not installed: {e}")
+            return f"Error: OCR dependencies not available ({str(e)})"
         except Exception as e:
             logger.error(f"Error in OCR extraction: {str(e)}")
             return f"Error in OCR processing: {str(e)}"
+    
+    def _preprocess_text(self, text: str) -> str:
+        """
+        Preprocess extracted text to clean up common extraction artifacts.
+        
+        Handles:
+        - Excessive whitespace and blank lines
+        - Hyphenated line breaks
+        - Spaced punctuation
+        - Very short noise lines (page numbers, headers)
+        
+        Args:
+            text: Raw extracted text
+            
+        Returns:
+            Cleaned text
+        """
+        if not text or not text.strip():
+            return ""
+        
+        # Fix hyphenated line breaks (e.g., "infor-\nmation" → "information")
+        text = re.sub(r'(\w)-\s*\n\s*(\w)', r'\1\2', text)
+        
+        # Fix spaced punctuation
+        text = re.sub(r'(\w)\s+([.,;:])', r'\1\2', text)
+        
+        # Remove very short lines that are likely page numbers or headers
+        lines = text.split('\n')
+        filtered_lines = []
+        for line in lines:
+            stripped = line.strip()
+            # Skip lines that are just numbers (page numbers)
+            if stripped and not re.match(r'^\d{1,4}$', stripped):
+                filtered_lines.append(line)
+        
+        # Collapse multiple blank lines into one
+        text = '\n'.join(filtered_lines)
+        text = re.sub(r'\n{3,}', '\n\n', text)
+        
+        return text.strip()
     
     def _is_extraction_sufficient(self, text: str) -> bool:
         """
@@ -157,20 +210,17 @@ class PDFProcessor:
         Returns:
             True if extraction seems sufficient, False otherwise
         """
-        # If almost no text was extracted, standard extraction failed
         if len(text.strip()) < 100:
             return False
         
-        # Check for reasonable character density
         words = text.split()
         if len(words) < 20:
             return False
         
-        # Check for common OCR indicators
+        # Check for common garbled-extraction indicators
         ocr_indicators = ['�', '□', '■', '▯', '▮']
         indicator_count = sum(text.count(indicator) for indicator in ocr_indicators)
         
-        # If too many special characters, extraction likely failed
         if indicator_count > 20 or indicator_count > len(text) * 0.05:
             return False
             

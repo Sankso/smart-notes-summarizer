@@ -106,11 +106,11 @@ class Executor:
         """
         if not text or not text.strip():
             return ""
-            
         text = str(text)
         
-        # Remove citations like [1], [1, 2], [1-3]
-        text = re.sub(r'\[\s*\d+(?:\s*,\s*\d+)*\s*(?:-\s*\d+)?\s*\]', '', text)
+        # Remove all Wikipedia-style citations: [1], [1, 2], [a], [note 1], [citation needed]
+        # This matches brackets containing only letters, numbers, spaces, commas, and hyphens.
+        text = re.sub(r'\[[a-zA-Z0-9\s,\-]+\]', '', text)
         
         # Fix common PDF extraction artifacts
         text = re.sub(r'([a-z])- ([a-z])', r'\1\2', text)  # Fix hyphenation

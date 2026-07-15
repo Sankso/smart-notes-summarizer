@@ -220,6 +220,10 @@ class SmartSummarizerAgent:
         else:
             # Only one chunk, so no need to double-summarize
             final_summary = merged_summary
+            
+        # ── Step 7: Final Cleanup ──
+        # Run a final normalization pass to guarantee no model-generated citations slip through
+        final_summary = self.executor.normalize_text(final_summary)
         
         # Deduplicate keywords across chunks
         unique_keywords = self._deduplicate_keywords(all_keywords)

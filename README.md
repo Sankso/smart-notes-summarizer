@@ -1,5 +1,4 @@
 # Smart Notes Summarizer
-
 An agentic multi-agent system that dynamically routes summarization tasks between a locally fine-tuned **FLAN-T5** model and the **Gemini API** based on text complexity. Ingests unstructured PDFs, generates semantic summaries, and extracts keywords using multi-algorithmic NLP.
 
 ## Architecture
@@ -34,7 +33,7 @@ An agentic multi-agent system that dynamically routes summarization tasks betwee
 └──────────────────────────────────────────────────────────────┘
 ```
 
-## Key Features
+## KEY FEATURES
 
 - **Agentic Multi-Agent Workflow**: Gemini Supervisor dynamically routes tasks between local FLAN-T5 and external Gemini API based on text complexity analysis
 - **Automated Document Pipeline**: Ingests, parses, and structures unstructured PDFs into semantic summaries (PyMuPDF + OCR fallback)
@@ -42,11 +41,11 @@ An agentic multi-agent system that dynamically routes summarization tasks betwee
 - **Multi-Algorithmic Keyword Extraction**: Combines YAKE, RAKE, and TF-IDF with spaCy NLP for robust keyword identification
 - **PEFT Fine-Tuning**: LoRA adapters for parameter-efficient fine-tuning of FLAN-T5 on summarization tasks
 
-## Tech Stack
+## TECH STACK
 
 `Python` · `Transformers` · `PEFT (LoRA)` · `Gemini API` · `Streamlit` · `Hugging Face` · `spaCy` · `PyTorch`
 
-## Project Structure
+## PROJECT STRUCTURE
 
 ```
 smart-notes-summarizer/
@@ -69,22 +68,22 @@ smart-notes-summarizer/
 └── README.md
 ```
 
-## Quick Start
+## QUICK START
 
-### Installation
+### INSTALLATION
 
 ```bash
 pip install -r requirements.txt
 python -m spacy download en_core_web_sm
 ```
 
-### Set up Gemini API (optional — falls back to local model)
+### SET UP GEMINI API (optional — falls back to local model)
 
 ```bash
 export GEMINI_API_KEY="your-api-key"
 ```
 
-### Usage
+### USAGE
 
 #### 1. Web UI (Recommended)
 ```bash
@@ -92,7 +91,7 @@ streamlit run streamlit_app.py
 ```
 *Opens a premium dark-themed web interface at `http://localhost:8501` where you can paste text or upload PDFs.*
 
-#### 2. Command Line
+#### 2. COMMAND LINE
 ```bash
 # Summarize a PDF
 python main.py --pdf path/to/document.pdf
@@ -104,13 +103,13 @@ python main.py --text "Your text here..."
 python main.py --pdf notes.pdf --length short   # short | normal | long
 ```
 
-### Run Tests
+### RUN TESTS
 
 ```bash
 pytest tests/ -v
 ```
 
-## How It Works
+## HOW IT WORKS
 
 1. **Ingestion**: `PDFProcessor` extracts text from unstructured PDFs (with OCR fallback for scanned documents)
 2. **Cleaning**: Aggressive regex strips Wikipedia-style citations (`[1]`, `[citation needed]`), fixes hyphenation, and removes duplicate spaces.
@@ -121,7 +120,7 @@ pytest tests/ -v
 5. **Keywords**: Multi-algorithmic extraction runs across chunks combining YAKE, RAKE, and TF-IDF.
 6. **Merging & Final Compression**: Chunk summaries are stitched together, and routed back through the pipeline for a final, comprehensive double-summarization pass to ensure a cohesive final output.
 
-## Fine-Tuning
+## FINE-TUNING
 
 To fine-tune FLAN-T5 with LoRA on your own dataset:
 

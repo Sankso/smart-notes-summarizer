@@ -172,10 +172,16 @@ class SmartSummarizerAgent:
             
             all_keywords.extend(chunk_keywords)
             
-            # Step 3: Gemini Supervisor routes this chunk
+            # Step 2.5: Planner analyzes chunk complexity
+            complexity_info = self.planner.analyze(chunk)
+            logger.info(f"  Chunk {i+1}: complexity={complexity_info['complexity_score']:.2f}, "
+                        f"action={complexity_info['action']}")
+            
+            # Step 3: Gemini Supervisor routes this chunk (informed by complexity analysis)
             decision = self.brain.decide_strategy(
                 chunk_text=chunk,
                 chunk_keywords=chunk_keywords,
+                complexity_info=complexity_info,
                 chunk_index=i,
                 total_chunks=len(chunks)
             )

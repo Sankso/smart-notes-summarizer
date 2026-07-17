@@ -59,17 +59,20 @@ class GeminiSupervisor:
 
     def decide_strategy(self, chunk_text: str,
                        chunk_keywords: Optional[List[Dict[str, Any]]] = None,
+                       complexity_info: Optional[Dict[str, Any]] = None,
                        chunk_index: int = 0,
                        total_chunks: int = 1) -> Dict[str, Any]:
         """
         Analyze a single text chunk and decide the best processing strategy.
         
-        Uses the chunk's content and extracted keywords to make an informed
-        routing decision. Each chunk is independently evaluated.
+        Uses the chunk's content, extracted keywords, and complexity analysis
+        to make an informed routing decision. Each chunk is independently evaluated.
         
         Args:
             chunk_text: The text content of this chunk
             chunk_keywords: Keywords extracted from this chunk
+            complexity_info: Complexity analysis from PlannerAgent (word_count,
+                           complexity_score, action, reason)
             chunk_index: Position of this chunk in the document (0-indexed)
             total_chunks: Total number of chunks in the document
             
@@ -77,7 +80,12 @@ class GeminiSupervisor:
             Dictionary with 'action', 'summary_length', and 'reason' keys
         """
         if not self.model:
-            logger.warning(f"No Gemini model. Falling back to local for chunk {chunk_index+1}/{total_chunks}.")
+            # Use PlannerAgent's complexity analysis for smarter fallback routing
+            if complexity_info and complexity_info.get("complexity_score", 0) > 0.7:
+                logger.info(f"Fallback mode: chunk {chunk_index+1}/{total_chunks} is complex "
+                           f"(score={complexity_info['complexity_score']:.2f}), "
+                           f"but no Gemini API available — routing to local.")
+            
             return {
                 "action": "summarize_local",
                 "summary_length": "normal",
@@ -92,6 +100,18 @@ class GeminiSupervisor:
             kw_list = [kw['keyword'] for kw in chunk_keywords[:10]]
             keyword_context = f"\nExtracted keywords from this chunk: {', '.join(kw_list)}\n"
         
+        # Format complexity analysis for the prompt
+        complexity_context = ""
+        if complexity_info:
+            complexity_context = (
+                f"\nComplexity analysis (from PlannerAgent):\n"
+                f"- Word count: {complexity_info.get('word_count', 'N/A')}\n"
+                f"- Complexity score: {complexity_info.get('complexity_score', 'N/A'):.2f}\n"
+                f"- Average sentence length: {complexity_info.get('avg_sentence_length', 'N/A'):.1f} words\n"
+                f"- Complex word ratio: {complexity_info.get('complex_word_ratio', 'N/A'):.2f}\n"
+                f"- Planner recommendation: {complexity_info.get('action', 'N/A')}\n"
+            )
+        
         prompt = (
             "You are the Supervisor Brain of an Agentic AI summarizing system. "
             "You are evaluating ONE CHUNK of a larger document. "
@@ -99,7 +119,7 @@ class GeminiSupervisor:
             "You have access to:\n"
             "- A local fine-tuned FLAN-T5 model: excellent at standard academic/factual summaries\n"
             "- Gemini API (yourself): handles complex reasoning, conversational text, or rewriting\n\n"
-            "Analyze the chunk text and its keywords, then decide how to process it.\n"
+            "Analyze the chunk text, its keywords, and the complexity analysis, then decide how to process it.\n"
             "Return ONLY a valid JSON object with these keys:\n"
             "- 'action': one of ['summarize_local', 'summarize_gemini', 'rewrite_gemini']\n"
             "- 'summary_length': one of ['short', 'normal', 'long']\n"
@@ -109,7 +129,7 @@ class GeminiSupervisor:
             "- Complex reasoning, multi-topic, or conversational -> 'summarize_gemini'\n"
             "- Very short or poorly written -> 'rewrite_gemini'\n"
             "- Prefer 'summarize_local' when possible (lower latency, no API cost)\n\n"
-            f"Chunk text to analyze:\n\n{chunk_text[:5000]}{keyword_context}"
+            f"Chunk text to analyze:\n\n{chunk_text[:5000]}{keyword_context}{complexity_context}"
         )
         
         try:

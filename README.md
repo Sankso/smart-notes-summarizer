@@ -37,7 +37,7 @@ An agentic multi-agent system that dynamically routes summarization tasks betwee
 ## Key Features
 
 - **Agentic Multi-Agent Workflow**: Gemini Supervisor dynamically routes tasks between local FLAN-T5 and external Gemini API based on text complexity analysis
-- **Automated Document Pipeline**: Ingests, parses, and structures unstructured PDFs into semantic summaries (PyPDF2 + OCR fallback)
+- **Automated Document Pipeline**: Ingests, parses, and structures unstructured PDFs into semantic summaries (PyMuPDF + OCR fallback)
 - **Sliding-Window Chunking**: Optimizes context window performance by compressing payload sizes while eliminating data loss for long documents
 - **Multi-Algorithmic Keyword Extraction**: Combines YAKE, RAKE, and TF-IDF with spaCy NLP for robust keyword identification
 - **PEFT Fine-Tuning**: LoRA adapters for parameter-efficient fine-tuning of FLAN-T5 on summarization tasks
@@ -55,7 +55,7 @@ smart-notes-summarizer/
 │   ├── brain.py              # Gemini Supervisor (routing brain)
 │   ├── planner.py            # Text complexity analyzer
 │   ├── executor.py           # FLAN-T5 + LoRA with sliding-window chunking
-│   ├── pdf_processor.py      # PDF ingestion (PyPDF2 + OCR)
+│   ├── pdf_processor.py      # PDF ingestion (PyMuPDF + OCR)
 │   └── keyword_extractor.py  # Multi-algorithmic extraction
 ├── finetuning/
 │   └── train_lora.py         # LoRA fine-tuning script

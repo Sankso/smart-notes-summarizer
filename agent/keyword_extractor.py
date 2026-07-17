@@ -12,7 +12,6 @@ import spacy
 import yake
 import RAKE
 from typing import List, Dict, Any, Union, Optional
-from collections import Counter
 from sklearn.feature_extraction.text import TfidfVectorizer
 
 logger = logging.getLogger(__name__)
@@ -124,7 +123,11 @@ class KeywordExtractor:
 
     def extract_keywords_tfidf(self, text: str) -> List[Dict[str, Any]]:
         """
-        Extract keywords using TF-IDF and spaCy.
+        Extract keywords using TF-IDF with spaCy sentence segmentation.
+        
+        Splits the text into sentences to form a mini-corpus, then applies
+        TfidfVectorizer to identify terms that are important within specific
+        sentences but not uniformly distributed across all sentences.
         
         Args:
             text: Input text
@@ -137,22 +140,41 @@ class KeywordExtractor:
             return []
         
         try:
-            # Process with spaCy
+            # Use spaCy to segment text into sentences (forms the TF-IDF corpus)
             doc = self.nlp(text)
+            sentences = [sent.text.strip() for sent in doc.sents if len(sent.text.strip()) > 10]
             
-            # Extract meaningful tokens (nouns, proper nouns, adjectives)
-            tokens = [token.lemma_.lower() for token in doc 
-                     if not token.is_stop and not token.is_punct 
-                     and token.pos_ in ('NOUN', 'PROPN', 'ADJ')
-                     and len(token.text) > 1]
+            if not sentences:
+                return []
             
-            # Get the most common tokens
-            counter = Counter(tokens)
-            keywords = counter.most_common(self.top_n)
+            # Need at least 2 documents for meaningful IDF; if only 1 sentence,
+            # duplicate it so the vectorizer doesn't fail
+            if len(sentences) == 1:
+                sentences = sentences + sentences
             
-            # Convert to list of dicts for consistent format
-            return [{'keyword': kw, 'score': score / max(counter.values()), 'method': 'TF-IDF'} 
-                   for kw, score in keywords]
+            # Apply TF-IDF vectorization
+            vectorizer = TfidfVectorizer(
+                max_features=self.top_n * 3,
+                stop_words='english',
+                ngram_range=(1, min(self.max_ngram_size, 2)),
+                token_pattern=r'(?u)\b[a-zA-Z]{2,}\b'
+            )
+            
+            tfidf_matrix = vectorizer.fit_transform(sentences)
+            feature_names = vectorizer.get_feature_names_out()
+            
+            # Sum TF-IDF scores across all sentences for each term
+            aggregated_scores = tfidf_matrix.sum(axis=0).A1
+            
+            # Normalize scores to 0-1 range
+            max_score = aggregated_scores.max() if aggregated_scores.max() > 0 else 1.0
+            
+            # Create scored keyword list
+            keyword_scores = list(zip(feature_names, aggregated_scores))
+            keyword_scores.sort(key=lambda x: x[1], reverse=True)
+            
+            return [{'keyword': kw, 'score': float(score / max_score), 'method': 'TF-IDF'} 
+                   for kw, score in keyword_scores[:self.top_n]]
         except Exception as e:
             logger.warning(f"Error extracting keywords with TF-IDF: {e}")
             return []

@@ -1,52 +1,56 @@
-# Smart Notes Summarizer
+<div align="center">
+  <h1>🧠 Smart Notes Summarizer</h1>
+  <p><b>Agentic AI for intelligent document processing and summarization.</b></p>
+</div>
+
+<br>
+
+<div align="center">
+  <img src="https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white" />
+  <img src="https://img.shields.io/badge/PyTorch-EE4C2C?style=for-the-badge&logo=pytorch&logoColor=white" />
+  <img src="https://img.shields.io/badge/Hugging_Face-FFAA00?style=for-the-badge&logo=huggingface&logoColor=white" />
+  <img src="https://img.shields.io/badge/Gemini_API-8E75B2?style=for-the-badge&logo=google&logoColor=white" />
+  <img src="https://img.shields.io/badge/Streamlit-FF4B4B?style=for-the-badge&logo=streamlit&logoColor=white" />
+  <img src="https://img.shields.io/badge/spaCy-09A3D5?style=for-the-badge&logo=spacy&logoColor=white" />
+</div>
+
+<br>
 
 An agentic multi-agent system that dynamically routes summarization tasks between a locally fine-tuned **FLAN-T5** model and the **Gemini API** based on text complexity. Ingests unstructured PDFs, generates semantic summaries, and extracts keywords using multi-algorithmic NLP.
 
-## Architecture
+## 🚀 Tech Stack
 
+- **Core AI:** Transformers, PEFT (LoRA), PyTorch, Google Generative AI
+- **Frontend UI:** Streamlit
+- **NLP Pipeline:** spaCy, NLTK, YAKE, RAKE
+- **Data Ingestion:** PyMuPDF (fitz), pdf2image, pytesseract
+
+## 🌟 Key Features
+
+- **🤖 Agentic Multi-Agent Workflow**: Gemini Supervisor dynamically routes tasks between local FLAN-T5 and external Gemini API based on text complexity analysis.
+- **📄 Automated Document Pipeline**: Ingests, parses, and structures unstructured PDFs into semantic summaries (PyMuPDF + OCR fallback).
+- **🪟 Sliding-Window Chunking**: Optimizes context window performance by compressing payload sizes while eliminating data loss for long documents.
+- **🏷️ Multi-Algorithmic Keyword Extraction**: Combines YAKE, RAKE, and TF-IDF with spaCy NLP for robust keyword identification.
+- **⚡ PEFT Fine-Tuning**: LoRA adapters for parameter-efficient fine-tuning of FLAN-T5 on summarization tasks.
+
+## 🏗️ Architecture
+
+```mermaid
+graph TD
+    A[PDF / Text Input] --> B(PDFProcessor)
+    B --> C{PlannerAgent & KeywordExtractor}
+    C --> D{GeminiSupervisor <br/> Routing Brain}
+    
+    D -->|Standard Text| E[Local Executor <br/> FLAN-T5 + LoRA]
+    D -->|Complex Text / Rewriting| F[Gemini API]
+    
+    E --> G[Merge & Deduplicate]
+    F --> G
+    
+    G --> H[Final Summary & Keywords]
 ```
-┌──────────────────────────────────────────────────────────────┐
-│                    SmartSummarizerAgent                       │
-│                    (Orchestrator)                             │
-├──────────────────────────────────────────────────────────────┤
-│                                                              │
-│  ┌──────────────┐    ┌──────────────────┐                   │
-│  │ PDFProcessor │───▶│  PlannerAgent    │                   │
-│  │ (Ingestion)  │    │  (Complexity     │                   │
-│  │              │    │   Analysis)      │                   │
-│  └──────────────┘    └────────┬─────────┘                   │
-│                               │                              │
-│                    ┌──────────▼──────────┐                   │
-│                    │ GeminiSupervisor    │                   │
-│                    │ (Routing Brain)     │                   │
-│                    └──┬──────────────┬──┘                   │
-│                       │              │                       │
-│              ┌────────▼───┐   ┌──────▼──────┐               │
-│              │  Executor  │   │ Gemini API  │               │
-│              │ FLAN-T5    │   │ (Complex    │               │
-│              │ + LoRA     │   │  texts)     │               │
-│              └────────────┘   └─────────────┘               │
-│                                                              │
-│              ┌────────────────────────┐                      │
-│              │  KeywordExtractor      │                      │
-│              │  YAKE + RAKE + TF-IDF  │                      │
-│              └────────────────────────┘                      │
-└──────────────────────────────────────────────────────────────┘
-```
 
-## Key Features
-
-- **Agentic Multi-Agent Workflow**: Gemini Supervisor dynamically routes tasks between local FLAN-T5 and external Gemini API based on text complexity analysis
-- **Automated Document Pipeline**: Ingests, parses, and structures unstructured PDFs into semantic summaries (PyMuPDF + OCR fallback)
-- **Sliding-Window Chunking**: Optimizes context window performance by compressing payload sizes while eliminating data loss for long documents
-- **Multi-Algorithmic Keyword Extraction**: Combines YAKE, RAKE, and TF-IDF with spaCy NLP for robust keyword identification
-- **PEFT Fine-Tuning**: LoRA adapters for parameter-efficient fine-tuning of FLAN-T5 on summarization tasks
-
-## Tech Stack
-
-`Python` · `Transformers` · `PEFT (LoRA)` · `Gemini API` · `Streamlit` · `Hugging Face` · `spaCy` · `PyTorch`
-
-## Project Structure
+## 📁 Project Structure
 
 ```
 smart-notes-summarizer/
@@ -69,22 +73,22 @@ smart-notes-summarizer/
 └── README.md
 ```
 
-## Quick Start
+## QUICK START
 
-### Installation
+### INSTALLATION
 
 ```bash
 pip install -r requirements.txt
 python -m spacy download en_core_web_sm
 ```
 
-### Set up Gemini API (optional — falls back to local model)
+### SET UP GEMINI API (optional — falls back to local model)
 
 ```bash
 export GEMINI_API_KEY="your-api-key"
 ```
 
-### Usage
+### USAGE
 
 #### 1. Web UI (Recommended)
 ```bash
@@ -92,7 +96,7 @@ streamlit run streamlit_app.py
 ```
 *Opens a premium dark-themed web interface at `http://localhost:8501` where you can paste text or upload PDFs.*
 
-#### 2. Command Line
+#### 2. COMMAND LINE
 ```bash
 # Summarize a PDF
 python main.py --pdf path/to/document.pdf
@@ -104,13 +108,13 @@ python main.py --text "Your text here..."
 python main.py --pdf notes.pdf --length short   # short | normal | long
 ```
 
-### Run Tests
+### RUN TESTS
 
 ```bash
 pytest tests/ -v
 ```
 
-## How It Works
+## HOW IT WORKS
 
 1. **Ingestion**: `PDFProcessor` extracts text from unstructured PDFs (with OCR fallback for scanned documents)
 2. **Cleaning**: Aggressive regex strips Wikipedia-style citations (`[1]`, `[citation needed]`), fixes hyphenation, and removes duplicate spaces.
@@ -121,7 +125,7 @@ pytest tests/ -v
 5. **Keywords**: Multi-algorithmic extraction runs across chunks combining YAKE, RAKE, and TF-IDF.
 6. **Merging & Final Compression**: Chunk summaries are stitched together, and routed back through the pipeline for a final, comprehensive double-summarization pass to ensure a cohesive final output.
 
-## Fine-Tuning
+## FINE-TUNING
 
 To fine-tune FLAN-T5 with LoRA on your own dataset:
 

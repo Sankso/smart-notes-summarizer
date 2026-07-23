@@ -196,7 +196,7 @@ if run:
     # Keywords
     keywords = result.get("keywords", [])
     if keywords:
-        method_cls = {"YAKE": "chip", "RAKE": "chip chip-cyan", "TF-IDF": "chip chip-green"}
+        method_cls = {"YAKE": "chip", "RAKE": "chip chip-cyan", "TF-IDF": "chip chip-green", "Header": "chip chip-green"}
         chips = " ".join(
             f'<span class="{method_cls.get(kw.get("method",""), "chip")}">{kw["keyword"]}</span>'
             for kw in keywords

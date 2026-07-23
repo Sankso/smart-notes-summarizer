@@ -14,7 +14,7 @@ Pipeline: PDF Upload → Text Extraction → Preprocessing → Clean Text
 import os
 import re
 import logging
-from typing import Optional
+from typing import Optional, List
 
 import fitz  # PyMuPDF
 
@@ -79,6 +79,59 @@ class PDFProcessor:
         else:
             logger.warning("PyMuPDF extraction insufficient but OCR is disabled")
             return self._preprocess_text(text)
+    
+    def extract_headers(self, pdf_path: str) -> List[str]:
+        """
+        Extract section headers from a PDF by detecting text with larger font sizes.
+        
+        Uses PyMuPDF's font metadata to identify text rendered at a larger size
+        than the document's median body text — these are typically section headers.
+        
+        Args:
+            pdf_path: Path to the PDF file
+            
+        Returns:
+            List of header strings, deduplicated and in document order
+        """
+        try:
+            doc = fitz.open(pdf_path)
+            font_sizes = []
+            text_spans = []
+            
+            for page in doc:
+                for block in page.get_text("dict")["blocks"]:
+                    for line in block.get("lines", []):
+                        for span in line.get("spans", []):
+                            text = span["text"].strip()
+                            if text and len(text) > 2:
+                                font_sizes.append(span["size"])
+                                text_spans.append((text, span["size"]))
+            
+            doc.close()
+            
+            if not font_sizes:
+                return []
+            
+            # Calculate median font size (represents body text)
+            sorted_sizes = sorted(font_sizes)
+            median_size = sorted_sizes[len(sorted_sizes) // 2]
+            
+            # Headers = text with font size notably larger than body text
+            headers = []
+            seen = set()
+            for text, size in text_spans:
+                if size > median_size * 1.15 and 3 < len(text) < 200:
+                    normalized = text.lower().strip()
+                    if normalized not in seen:
+                        headers.append(text)
+                        seen.add(normalized)
+            
+            logger.info(f"Extracted {len(headers)} headers from PDF structure")
+            return headers
+            
+        except Exception as e:
+            logger.warning(f"Header extraction failed: {e}")
+            return []
     
     def _extract_with_pymupdf(self, pdf_path: str) -> str:
         """

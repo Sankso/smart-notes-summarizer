@@ -94,8 +94,11 @@ class KeywordExtractor:
             List of dictionaries with keywords and scores
         """
         try:
+            # YAKE relies on statistical features like word casing, position, and frequency.
+            # Unlike other algorithms, YAKE scores are "lower is better".
             keywords = self.yake_extractor.extract_keywords(text)
-            # Convert to list of dicts for consistent format
+            
+            # Convert to list of dicts for consistent format across all extractors
             return [{'keyword': kw, 'score': score, 'method': 'YAKE'} for kw, score in keywords]
         except Exception as e:
             logger.warning(f"Error extracting keywords with YAKE: {e}")
@@ -112,9 +115,13 @@ class KeywordExtractor:
             List of dictionaries with keywords and scores
         """
         try:
+            # RAKE splits text by punctuation and stop-words, extracting phrases
+            # based on word co-occurrence frequencies. Higher scores are better.
             keywords = self.rake.run(text)
-            # Sort by score and take top n
+            
+            # Sort by score (descending) and slice off the top n results
             keywords = sorted(keywords, key=lambda x: x[1], reverse=True)[:self.top_n]
+            
             # Convert to list of dicts for consistent format
             return [{'keyword': kw, 'score': score, 'method': 'RAKE'} for kw, score in keywords]
         except Exception as e:
@@ -163,16 +170,17 @@ class KeywordExtractor:
             tfidf_matrix = vectorizer.fit_transform(sentences)
             feature_names = vectorizer.get_feature_names_out()
             
-            # Sum TF-IDF scores across all sentences for each term
+            # Sum TF-IDF scores across all sentences for each term to get its global chunk importance
             aggregated_scores = tfidf_matrix.sum(axis=0).A1
             
-            # Normalize scores to 0-1 range
+            # Normalize scores to 0.0 - 1.0 range so they can be compared with YAKE and RAKE
             max_score = aggregated_scores.max() if aggregated_scores.max() > 0 else 1.0
             
-            # Create scored keyword list
+            # Zip the words and their scores together into a list of tuples, then sort descending
             keyword_scores = list(zip(feature_names, aggregated_scores))
             keyword_scores.sort(key=lambda x: x[1], reverse=True)
             
+            # Convert to the standardized dictionary format, scaling by max_score
             return [{'keyword': kw, 'score': float(score / max_score), 'method': 'TF-IDF'} 
                    for kw, score in keyword_scores[:self.top_n]]
         except Exception as e:
@@ -211,22 +219,25 @@ class KeywordExtractor:
             # Combine all keywords
             all_keywords = yake_keywords + rake_keywords + tfidf_keywords
             
-            # Create a dictionary to track best score for each keyword
+            # Deduplication Loop: Combine all keywords into a unique set
+            # We track the 'best score' so if two algorithms find the same word,
+            # we only keep the version with the highest mathematical score.
             best_keywords = {}
             for item in all_keywords:
                 keyword = item['keyword']
                 score = item['score']
                 method = item['method']
                 
-                # For YAKE, lower score is better
+                # YAKE's mathematical output is an error score (lower is better).
+                # We subtract it from 1 to invert it so it matches RAKE and TF-IDF's scale.
                 if method == 'YAKE':
-                    score = 1 - score  # Invert score for consistency
+                    score = 1 - score
                 
-                # Update if this keyword doesn't exist or has a better score
+                # Update if this keyword doesn't exist yet, or if this algorithm gave it a higher score
                 if keyword not in best_keywords or score > best_keywords[keyword]['score']:
                     best_keywords[keyword] = {'keyword': keyword, 'score': score, 'method': method}
             
-            # Convert dictionary to list and sort by score
+            # Convert dictionary back to a list and sort by the normalized score
             result = list(best_keywords.values())
             result.sort(key=lambda x: x['score'], reverse=True)
             

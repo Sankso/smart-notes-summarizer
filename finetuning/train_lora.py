@@ -12,7 +12,6 @@ import logging
 import torch
 from typing import Optional, List
 from datetime import datetime
-from pathlib import Path
 
 from transformers import (
     AutoModelForSeq2SeqLM, 
@@ -156,6 +155,9 @@ class LoRATrainer:
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         run_name = f"lora_{os.path.basename(self.model_name)}_{timestamp}"
         
+        # Check if a validation split exists to conditionally enable evaluation
+        has_eval = "validation" in tokenized_dataset
+        
         # Define training arguments
         logger.info("Setting up training arguments")
         training_args = Seq2SeqTrainingArguments(
@@ -169,14 +171,14 @@ class LoRATrainer:
             weight_decay=weight_decay,
             fp16=fp16,
             bf16=bf16,
-            evaluation_strategy="steps",
-            eval_steps=eval_steps,
+            eval_strategy="steps" if has_eval else "no",
+            eval_steps=eval_steps if has_eval else None,
             save_strategy="steps",
             save_steps=save_steps,
             logging_dir=os.path.join(self.output_dir, run_name, "logs"),
             logging_steps=100,
-            load_best_model_at_end=True,
-            metric_for_best_model="eval_loss",
+            load_best_model_at_end=has_eval,
+            metric_for_best_model="eval_loss" if has_eval else None,
             greater_is_better=False,
             report_to=["tensorboard"],
             remove_unused_columns=True
@@ -188,7 +190,7 @@ class LoRATrainer:
             args=training_args,
             train_dataset=tokenized_dataset["train"],
             eval_dataset=tokenized_dataset.get("validation", None),
-            tokenizer=tokenizer,
+            processing_class=tokenizer,
             data_collator=data_collator
         )
         
@@ -201,7 +203,6 @@ class LoRATrainer:
         logger.info(f"Saving LoRA weights to {final_model_path}")
         
         model.save_pretrained(final_model_path)
-        tokenizer.save_pretrained(final_model_path)
         
         logger.info("Training completed successfully")
         return final_model_path

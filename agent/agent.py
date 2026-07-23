@@ -112,8 +112,12 @@ class SmartSummarizerAgent:
             logger.warning(f"No text extracted from PDF: {pdf_path}")
             return {"summary": "Error: No text could be extracted from the provided PDF."}
         
+        # Extract section headers for keyword enrichment
+        document_headers = self.pdf_processor.extract_headers(pdf_path)
+        
         # Run the per-chunk pipeline
-        result = self.summarize_text(text, summary_length, extract_keywords)
+        result = self.summarize_text(text, summary_length, extract_keywords,
+                                    document_headers=document_headers)
         
         process_time = time.time() - start_time
         result["stats"]["source"] = os.path.basename(pdf_path)
@@ -123,14 +127,15 @@ class SmartSummarizerAgent:
         return result
     
     def summarize_text(self, text: str, summary_length: str = "normal",
-                      extract_keywords: bool = True) -> Dict[str, Any]:
+                      extract_keywords: bool = True,
+                      document_headers: Optional[List[str]] = None) -> Dict[str, Any]:
         """
         Per-chunk multi-agent pipeline for text summarization.
         
         Pipeline:
         1. Sliding-window chunking
         2. For each chunk:
-           a. Extract keywords (YAKE + RAKE + TF-IDF/spaCy)
+           a. Extract keywords (headers if available, else YAKE + RAKE + TF-IDF)
            b. Gemini Supervisor routes chunk (simple → FLAN-T5, complex → Gemini)
            c. Routed agent summarizes the chunk
         3. Merge & deduplicate all chunk summaries
@@ -139,6 +144,7 @@ class SmartSummarizerAgent:
             text: Raw text content to summarize
             summary_length: 'short', 'normal', or 'long'
             extract_keywords: Whether to include keywords in output
+            document_headers: Section headers extracted from PDF (if available)
             
         Returns:
             Dictionary with 'summary', 'keywords', 'chunk_details', and 'stats'
@@ -162,13 +168,21 @@ class SmartSummarizerAgent:
             # Step 2: Keyword extraction per chunk
             chunk_keywords = []
             if extract_keywords:
-                try:
-                    chunk_keywords = self.keyword_extractor.extract_keywords(
-                        chunk, method="combined"
-                    )
-                    logger.info(f"  Chunk {i+1}: extracted {len(chunk_keywords)} keywords")
-                except Exception as e:
-                    logger.warning(f"  Chunk {i+1}: keyword extraction failed: {e}")
+                if document_headers:
+                    # Use PDF section headers as high-quality, human-curated keywords
+                    chunk_keywords = [{'keyword': h, 'score': 1.0, 'method': 'Header'}
+                                     for h in document_headers]
+                    if i == 0:
+                        logger.info(f"  Using {len(chunk_keywords)} header-based keywords (from PDF structure)")
+                else:
+                    # Fallback: algorithmic extraction (YAKE + RAKE + TF-IDF)
+                    try:
+                        chunk_keywords = self.keyword_extractor.extract_keywords(
+                            chunk, method="combined"
+                        )
+                        logger.info(f"  Chunk {i+1}: extracted {len(chunk_keywords)} keywords")
+                    except Exception as e:
+                        logger.warning(f"  Chunk {i+1}: keyword extraction failed: {e}")
             
             all_keywords.extend(chunk_keywords)
             
